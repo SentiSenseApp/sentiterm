@@ -1,0 +1,47 @@
+import React from 'react'
+import { useAppStore } from '../../store'
+
+const NAV_ITEMS = [
+  { icon: '\u2302', label: 'Dashboard', route: '/' },
+  { icon: '\u2637', label: 'Stories', route: '/stories' },
+  { icon: '\u2191\u2193', label: 'Flows', route: '/flows/market' },
+  { icon: '\u2609', label: 'Market', route: '/market' },
+]
+
+export function Sidebar() {
+  const { currentRoute, navigate, setSettingsOpen } = useAppStore()
+
+  return (
+    <div className="w-12 bg-terminal-panel border-r border-terminal-border flex flex-col items-center py-3 gap-1 shrink-0">
+      {/* Logo */}
+      <div className="w-8 h-8 rounded-lg bg-terminal-green/10 flex items-center justify-center text-terminal-green font-bold text-sm mb-4 cursor-default">
+        S
+      </div>
+
+      {NAV_ITEMS.map((item) => (
+        <button
+          key={item.route}
+          onClick={() => navigate(item.route)}
+          className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm transition-colors ${
+            currentRoute === item.route || currentRoute.startsWith(item.route + '/')
+              ? 'bg-terminal-green/10 text-terminal-green'
+              : 'text-terminal-muted hover:text-terminal-text hover:bg-terminal-surface'
+          }`}
+          title={item.label}
+        >
+          {item.icon}
+        </button>
+      ))}
+
+      <div className="mt-auto">
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="w-9 h-9 rounded-lg flex items-center justify-center text-sm text-terminal-muted hover:text-terminal-text hover:bg-terminal-surface transition-colors"
+          title="Settings"
+        >
+          \u2699
+        </button>
+      </div>
+    </div>
+  )
+}
