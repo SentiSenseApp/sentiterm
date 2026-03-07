@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, nativeImage } from 'electron'
 import { join } from 'path'
 import { setupClaudeIPC } from './ipc/claude'
 import { setupSentiSenseIPC } from './ipc/sentisense'
@@ -38,6 +38,12 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  // Set dock icon on macOS
+  if (process.platform === 'darwin' && app.dock) {
+    const iconPath = join(__dirname, '../../resources/icon.png')
+    app.dock.setIcon(nativeImage.createFromPath(iconPath))
+  }
+
   setupClaudeIPC(ipcMain)
   setupSentiSenseIPC(ipcMain)
   setupStoreIPC(ipcMain)
