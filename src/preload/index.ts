@@ -13,6 +13,11 @@ const api = {
     callWithKey: (method: string, apiKey: string, ...args: unknown[]) =>
       ipcRenderer.invoke('sentisense:call', { method, args, apiKey })
   },
+  store: {
+    get: (key: string) => ipcRenderer.invoke('store:get', key),
+    set: (key: string, value: unknown) => ipcRenderer.invoke('store:set', key, value),
+    getAll: () => ipcRenderer.invoke('store:getAll')
+  },
   platform: process.platform
 }
 

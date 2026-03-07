@@ -1,10 +1,13 @@
 import React from 'react'
+import { useAppStore } from '../../store'
 import { useSentiSenseQuery } from '../../hooks/useSentiSense'
-import { MOCK_MARKET_OVERVIEW, type TerminalMarketOverview } from '../../lib/mockData'
+import { fetchMarketOverview } from '../../lib/api'
+import type { TerminalMarketOverview } from '../../lib/types'
 
 export function StatusBar() {
-  const { data } = useSentiSenseQuery<TerminalMarketOverview>(
-    async () => MOCK_MARKET_OVERVIEW
+  const apiKey = useAppStore().settings.sentiSenseApiKey
+  const { data } = useSentiSenseQuery<TerminalMarketOverview | null>(
+    async () => apiKey ? fetchMarketOverview(apiKey) : null, [apiKey]
   )
 
   return (

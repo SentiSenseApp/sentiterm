@@ -1,10 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 
-/**
- * Generic data fetching hook for SentiTerm.
- * In demo mode (no API key), returns mock data.
- * With an API key, calls the real SentiSense API via IPC to the main process.
- */
+function classifyError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err)
+  const lower = msg.toLowerCase()
+  if (lower.includes('401') || lower.includes('403') || lower.includes('authentication') || lower.includes('unauthorized'))
+    return 'Invalid API key. Check your key in Settings.'
+  if (lower.includes('429') || lower.includes('rate limit'))
+    return 'Rate limited. Please wait a moment and try again.'
+  if (lower.includes('404') || lower.includes('not found'))
+    return 'Data not available.'
+  if (lower.includes('fetch') || lower.includes('network') || lower.includes('timeout') || lower.includes('econnrefused'))
+    return 'Connection failed. Check your network.'
+  return msg || 'Unknown error'
+}
+
 export function useSentiSenseQuery<T>(
   queryFn: () => Promise<T>,
   deps: unknown[] = []
@@ -20,7 +29,7 @@ export function useSentiSenseQuery<T>(
       const result = await queryFn()
       setData(result)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      setError(classifyError(err))
     } finally {
       setLoading(false)
     }

@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { TerminalLayout } from './components/Layout/TerminalLayout'
 import { CommandBar } from './components/CommandBar/CommandBar'
 import { AIProviderConfig } from './components/Claude/AIProviderConfig'
+import { ApiKeyGate } from './components/Common/ApiKeyGate'
 import { Dashboard } from './components/Terminal/Dashboard'
 import { StockView } from './components/Terminal/StockView'
 import { NewsStories } from './components/Terminal/NewsStories'
@@ -32,12 +33,18 @@ function Router() {
 
 export default function App() {
   useCommandBar()
-  const { settingsOpen, setSettingsOpen } = useAppStore()
+  const { settingsOpen, setSettingsOpen, hydrated, hydrate } = useAppStore()
+
+  useEffect(() => { hydrate() }, [hydrate])
+
+  if (!hydrated) return <div className="flex items-center justify-center h-screen bg-terminal-bg text-terminal-muted font-mono text-sm">Loading...</div>
 
   return (
     <>
       <TerminalLayout>
-        <Router />
+        <ApiKeyGate>
+          <Router />
+        </ApiKeyGate>
       </TerminalLayout>
       <CommandBar />
       {settingsOpen && <AIProviderConfig onClose={() => setSettingsOpen(false)} />}

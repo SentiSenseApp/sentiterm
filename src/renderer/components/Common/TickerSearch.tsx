@@ -1,27 +1,23 @@
 import React, { useState } from 'react'
-import { MOCK_STOCKS } from '../../lib/mockData'
-
-interface StockSearchResult {
-  ticker: string
-  name: string
-  exchange: string
-  sector: string
-}
-
-const ALL_STOCKS: StockSearchResult[] = Object.values(MOCK_STOCKS).map(s => ({
-  ticker: s.ticker, name: s.name, exchange: s.exchange, sector: s.sector
-}))
+import { useAppStore } from '../../store'
+import { useSentiSenseQuery } from '../../hooks/useSentiSense'
+import { fetchStockList } from '../../lib/api'
+import type { StockSearchResult } from '../../lib/types'
 
 interface Props {
   onSelect: (ticker: string) => void
 }
 
 export function TickerSearch({ onSelect }: Props) {
+  const apiKey = useAppStore().settings.sentiSenseApiKey
+  const { data: allStocks } = useSentiSenseQuery<StockSearchResult[]>(
+    async () => fetchStockList(apiKey), [apiKey]
+  )
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
 
-  const results = query.length >= 1
-    ? ALL_STOCKS.filter(s => s.ticker.includes(query.toUpperCase()) || s.name.toUpperCase().includes(query.toUpperCase()))
+  const results = query.length >= 1 && allStocks
+    ? allStocks.filter(s => s.ticker.includes(query.toUpperCase()) || s.name.toUpperCase().includes(query.toUpperCase()))
     : []
 
   return (

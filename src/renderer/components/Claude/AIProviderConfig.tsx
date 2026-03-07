@@ -24,7 +24,7 @@ export function AIProviderConfig({ onClose }: Props) {
             className="terminal-input w-full"
           />
           <p className="text-terminal-muted text-xs mt-1">
-            Get your key at sentisense.ai/signup
+            Get your key at app.sentisense.ai/settings/developer
           </p>
         </div>
 

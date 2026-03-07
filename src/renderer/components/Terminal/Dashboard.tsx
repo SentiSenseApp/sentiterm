@@ -2,10 +2,8 @@ import React from 'react'
 import { useAppStore } from '../../store'
 import { useSentiSenseQuery } from '../../hooks/useSentiSense'
 import { SparklineChart } from '../Common/Chart'
-import {
-  MOCK_STOCKS, MOCK_SENTIMENT, MOCK_MARKET_SUMMARY,
-  type TerminalStockData, type TerminalSentimentData, type TerminalMarketSummary
-} from '../../lib/mockData'
+import { fetchStockData, fetchSentiment, fetchMarketMood } from '../../lib/api'
+import type { TerminalStockData, TerminalSentimentData, TerminalMarketSummary } from '../../lib/types'
 
 function formatMarketCap(value: number): string {
   if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`
@@ -21,10 +19,11 @@ function formatVolume(value: number): string {
 }
 
 export function Dashboard() {
-  const { watchlist, navigate } = useAppStore()
+  const { watchlist, navigate, settings } = useAppStore()
+  const apiKey = settings.sentiSenseApiKey
 
   const { data: summary } = useSentiSenseQuery<TerminalMarketSummary>(
-    async () => MOCK_MARKET_SUMMARY
+    async () => fetchMarketMood(apiKey), [apiKey]
   )
 
   return (
@@ -89,13 +88,12 @@ export function Dashboard() {
 }
 
 function WatchlistCard({ ticker, onClick }: { ticker: string; onClick: () => void }) {
+  const apiKey = useAppStore().settings.sentiSenseApiKey
   const { data: stock } = useSentiSenseQuery<TerminalStockData>(
-    async () => MOCK_STOCKS[ticker] ?? { ticker, name: ticker, price: 100, change: 0, changePercent: 0, volume: 0, marketCap: 0, sector: 'Unknown', exchange: 'UNKNOWN' },
-    [ticker]
+    async () => fetchStockData(apiKey, ticker), [apiKey, ticker]
   )
   const { data: sentiment } = useSentiSenseQuery<TerminalSentimentData>(
-    async () => MOCK_SENTIMENT[ticker] ?? { ticker, overall: 0, bullScore: 50, bearScore: 50, confidence: 0.5, volume: 0, trend: 'stable' as const, updatedAt: new Date().toISOString() },
-    [ticker]
+    async () => fetchSentiment(apiKey, ticker), [apiKey, ticker]
   )
 
   if (!stock) return <div className="terminal-card p-4 animate-pulse h-[120px]" />

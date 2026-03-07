@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { join } from 'path'
 import { setupClaudeIPC } from './ipc/claude'
 import { setupSentiSenseIPC } from './ipc/sentisense'
+import { setupStoreIPC } from './ipc/store'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -38,6 +39,7 @@ function createWindow(): void {
 app.whenReady().then(() => {
   setupClaudeIPC(ipcMain)
   setupSentiSenseIPC(ipcMain)
+  setupStoreIPC(ipcMain)
   createWindow()
 
   app.on('activate', () => {

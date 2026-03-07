@@ -4,16 +4,15 @@ import { useSentiSenseQuery } from '../../hooks/useSentiSense'
 import { SentimentView } from './SentimentView'
 import { InstitutionalFlows } from './InstitutionalFlows'
 import { NewsStories } from './NewsStories'
-import {
-  MOCK_STOCKS, MOCK_METRICS, MOCK_SENTIMENT,
-  type TerminalStockData, type TerminalStockMetrics, type TerminalSentimentData
-} from '../../lib/mockData'
+import { fetchStockData, fetchStockMetrics, fetchSentiment } from '../../lib/api'
+import type { TerminalStockData, TerminalStockMetrics, TerminalSentimentData } from '../../lib/types'
 
 type Tab = 'overview' | 'sentiment' | 'holders' | 'news'
 
 export function StockView() {
-  const { routeParams, currentRoute, navigate, watchlist, addToWatchlist, removeFromWatchlist } = useAppStore()
+  const { routeParams, currentRoute, navigate, watchlist, addToWatchlist, removeFromWatchlist, settings } = useAppStore()
   const ticker = routeParams.ticker || 'AAPL'
+  const apiKey = settings.sentiSenseApiKey
 
   let initialTab: Tab = 'overview'
   if (currentRoute.endsWith('/sentiment')) initialTab = 'sentiment'
@@ -23,16 +22,13 @@ export function StockView() {
   const [tab, setTab] = useState<Tab>(initialTab)
 
   const { data: stock } = useSentiSenseQuery<TerminalStockData>(
-    async () => MOCK_STOCKS[ticker] ?? { ticker, name: ticker, price: 100, change: 0, changePercent: 0, volume: 0, marketCap: 0, sector: 'Unknown', exchange: 'UNKNOWN' },
-    [ticker]
+    async () => fetchStockData(apiKey, ticker), [apiKey, ticker]
   )
   const { data: metrics } = useSentiSenseQuery<TerminalStockMetrics>(
-    async () => MOCK_METRICS[ticker] ?? { ticker, pe: 0, eps: 0, dividend: 0, dividendYield: 0, beta: 1, week52High: 0, week52Low: 0, avgVolume: 0, sharesOutstanding: 0 },
-    [ticker]
+    async () => fetchStockMetrics(apiKey, ticker), [apiKey, ticker]
   )
   const { data: sentiment } = useSentiSenseQuery<TerminalSentimentData>(
-    async () => MOCK_SENTIMENT[ticker] ?? { ticker, overall: 0, bullScore: 50, bearScore: 50, confidence: 0.5, volume: 0, trend: 'stable' as const, updatedAt: new Date().toISOString() },
-    [ticker]
+    async () => fetchSentiment(apiKey, ticker), [apiKey, ticker]
   )
 
   const isWatching = watchlist.includes(ticker)

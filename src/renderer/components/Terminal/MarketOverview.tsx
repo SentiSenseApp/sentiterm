@@ -1,13 +1,17 @@
 import React from 'react'
+import { useAppStore } from '../../store'
 import { useSentiSenseQuery } from '../../hooks/useSentiSense'
-import {
-  MOCK_MARKET_OVERVIEW, MOCK_MARKET_SUMMARY,
-  type TerminalMarketOverview, type TerminalMarketSummary
-} from '../../lib/mockData'
+import { fetchMarketOverview, fetchMarketMood } from '../../lib/api'
+import type { TerminalMarketOverview, TerminalMarketSummary } from '../../lib/types'
 
 export function MarketOverview() {
-  const { data: overview } = useSentiSenseQuery<TerminalMarketOverview>(async () => MOCK_MARKET_OVERVIEW)
-  const { data: summary } = useSentiSenseQuery<TerminalMarketSummary>(async () => MOCK_MARKET_SUMMARY)
+  const apiKey = useAppStore().settings.sentiSenseApiKey
+  const { data: overview } = useSentiSenseQuery<TerminalMarketOverview>(
+    async () => fetchMarketOverview(apiKey), [apiKey]
+  )
+  const { data: summary } = useSentiSenseQuery<TerminalMarketSummary>(
+    async () => fetchMarketMood(apiKey), [apiKey]
+  )
 
   return (
     <div className="p-6 space-y-6">

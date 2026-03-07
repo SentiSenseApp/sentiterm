@@ -1,14 +1,19 @@
 import React from 'react'
 import { useAppStore } from '../../store'
 import { useSentiSenseQuery } from '../../hooks/useSentiSense'
-import { MOCK_STORIES, type TerminalStory } from '../../lib/mockData'
+import { fetchStories, fetchStoriesByTicker } from '../../lib/api'
+import type { TerminalStory } from '../../lib/types'
 
 interface Props { ticker?: string }
 
 export function NewsStories({ ticker }: Props) {
-  const { navigate } = useAppStore()
-  const { data: stories } = useSentiSenseQuery<TerminalStory[]>(async () => MOCK_STORIES)
-  const filtered = ticker ? stories?.filter(s => s.tickers.includes(ticker)) : stories
+  const { navigate, settings } = useAppStore()
+  const apiKey = settings.sentiSenseApiKey
+  const { data: stories } = useSentiSenseQuery<TerminalStory[]>(
+    async () => ticker ? fetchStoriesByTicker(apiKey, ticker) : fetchStories(apiKey),
+    [apiKey, ticker]
+  )
+  const filtered = stories
 
   return (
     <div className={ticker ? 'space-y-3' : 'p-6 space-y-4'}>
@@ -31,7 +36,7 @@ export function NewsStories({ ticker }: Props) {
               </div>
               <div className="shrink-0 text-right">
                 <div className="flex flex-wrap gap-1 justify-end mb-2">
-                  {story.tickers.map(t => (
+                  {(story.tickers ?? []).map(t => (
                     <button key={t} onClick={(e) => { e.stopPropagation(); navigate(`/stocks/${t}`, { ticker: t }) }}
                       className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-terminal-green/10 text-terminal-green hover:bg-terminal-green/20 transition-colors">{t}</button>
                   ))}

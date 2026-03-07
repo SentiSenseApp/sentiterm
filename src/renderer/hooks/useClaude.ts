@@ -12,6 +12,11 @@ declare global {
         call: (method: string, ...args: unknown[]) => Promise<unknown>
         callWithKey: (method: string, apiKey: string, ...args: unknown[]) => Promise<unknown>
       }
+      store: {
+        get: (key: string) => Promise<unknown>
+        set: (key: string, value: unknown) => Promise<void>
+        getAll: () => Promise<Record<string, unknown>>
+      }
       platform: string
     }
   }
@@ -30,8 +35,9 @@ export function useClaude() {
         apiKey: settings.aiApiKey,
         model: settings.aiModel
       })
-      addChatMessage({ role: response.role as 'user' | 'assistant', content: response.content })
-      return response.content
+      const res = response as { role: string; content: string }
+      addChatMessage({ role: res.role as 'user' | 'assistant', content: res.content })
+      return res.content
     }
 
     // Fallback for browser dev (no Electron)

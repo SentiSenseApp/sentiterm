@@ -1,22 +1,20 @@
 import React from 'react'
+import { useAppStore } from '../../store'
 import { useSentiSenseQuery } from '../../hooks/useSentiSense'
-import {
-  MOCK_SENTIMENT, MOCK_BULLBEAR,
-  type TerminalSentimentData, type TerminalBullBearAnalysis
-} from '../../lib/mockData'
+import { fetchSentiment, fetchAISummary } from '../../lib/api'
+import type { TerminalSentimentData, TerminalBullBearAnalysis } from '../../lib/types'
 
 interface Props {
   ticker?: string
 }
 
 export function SentimentView({ ticker = 'AAPL' }: Props) {
+  const apiKey = useAppStore().settings.sentiSenseApiKey
   const { data: sentiment } = useSentiSenseQuery<TerminalSentimentData>(
-    async () => MOCK_SENTIMENT[ticker] ?? { ticker, overall: 0, bullScore: 50, bearScore: 50, confidence: 0.5, volume: 0, trend: 'stable' as const, updatedAt: new Date().toISOString() },
-    [ticker]
+    async () => fetchSentiment(apiKey, ticker), [apiKey, ticker]
   )
   const { data: analysis } = useSentiSenseQuery<TerminalBullBearAnalysis>(
-    async () => MOCK_BULLBEAR[ticker] ?? { ticker, bullCase: ['No data available'], bearCase: ['No data available'], consensus: 'mixed' as const, analystRating: 3.0 },
-    [ticker]
+    async () => fetchAISummary(apiKey, ticker), [apiKey, ticker]
   )
 
   return (
