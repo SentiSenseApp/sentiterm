@@ -30,7 +30,7 @@ export function TickerSearch({ onSelect }: Props) {
           {results.map(r => (
             <button key={r.ticker} onClick={() => { onSelect(r.ticker); setQuery('') }}
               className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-terminal-surface transition-colors">
-              <span className="text-terminal-green font-mono text-sm font-semibold">{r.ticker}</span>
+              <span className="text-terminal-accent font-mono text-sm font-semibold">{r.ticker}</span>
               <span className="text-terminal-muted text-xs truncate">{r.name}</span>
             </button>
           ))}

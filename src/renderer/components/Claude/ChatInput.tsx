@@ -46,7 +46,7 @@ export function ChatInput({ onSend, disabled }: Props) {
         <button
           onClick={handleSubmit}
           disabled={!value.trim() || disabled}
-          className="px-3 py-1.5 bg-terminal-green/10 text-terminal-green rounded-md text-sm font-mono hover:bg-terminal-green/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shrink-0"
+          className="px-3 py-1.5 bg-terminal-accent/10 text-terminal-accent rounded-md text-sm font-mono hover:bg-terminal-accent/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shrink-0"
         >
           {'\u21B5'}
         </button>

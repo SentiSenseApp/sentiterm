@@ -29,7 +29,7 @@ export function ClaudePanel() {
     <div className="h-full flex flex-col bg-terminal-panel">
       {/* Header */}
       <div className="h-10 flex items-center px-4 border-b border-terminal-border shrink-0">
-        <span className="text-terminal-green text-xs font-mono font-semibold">AI ASSISTANT</span>
+        <span className="text-terminal-accent text-xs font-mono font-semibold">AI ASSISTANT</span>
         {!settings.aiApiKey && (
           <span className="ml-2 text-terminal-amber text-[10px] font-mono">(DEMO)</span>
         )}
@@ -39,7 +39,7 @@ export function ClaudePanel() {
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3">
         {chatHistory.length === 0 && (
           <div className="text-center py-8">
-            <div className="text-terminal-green text-2xl mb-3">S</div>
+            <img src={new URL('../../assets/logo.png', import.meta.url).href} alt="SentiSense" className="w-10 h-10 rounded-lg mb-3" />
             <p className="text-terminal-muted text-sm mb-4">
               Your AI financial co-pilot
             </p>
@@ -48,7 +48,7 @@ export function ClaudePanel() {
                 <button
                   key={q}
                   onClick={() => handleSend(q)}
-                  className="block w-full text-left px-3 py-2 rounded-md bg-terminal-bg text-terminal-muted text-xs font-mono hover:text-terminal-green hover:bg-terminal-green/5 transition-colors"
+                  className="block w-full text-left px-3 py-2 rounded-md bg-terminal-bg text-terminal-muted text-xs font-mono hover:text-terminal-accent hover:bg-terminal-accent/5 transition-colors"
                 >
                   {q}
                 </button>
@@ -64,7 +64,7 @@ export function ClaudePanel() {
         {sending && (
           <div className="flex justify-start mb-3">
             <div className="bg-terminal-surface rounded-lg px-3 py-2 text-sm">
-              <span className="text-terminal-green text-xs font-mono animate-pulse">Thinking...</span>
+              <span className="text-terminal-accent text-xs font-mono animate-pulse">Thinking...</span>
             </div>
           </div>
         )}

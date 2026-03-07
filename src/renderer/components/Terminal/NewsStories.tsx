@@ -21,7 +21,7 @@ export function NewsStories({ ticker }: Props) {
       {!filtered?.length && <div className="text-terminal-muted text-sm font-mono p-4">No stories found.</div>}
       <div className="space-y-3">
         {filtered?.map(story => (
-          <div key={story.id} className="terminal-card p-4 hover:border-terminal-green/30 transition-colors cursor-pointer"
+          <div key={story.id} className="terminal-card p-4 hover:border-terminal-accent/30 transition-colors cursor-pointer"
             onClick={() => { if (story.tickers[0]) navigate(`/stocks/${story.tickers[0]}`, { ticker: story.tickers[0] }) }}>
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
@@ -38,7 +38,7 @@ export function NewsStories({ ticker }: Props) {
                 <div className="flex flex-wrap gap-1 justify-end mb-2">
                   {(story.tickers ?? []).map(t => (
                     <button key={t} onClick={(e) => { e.stopPropagation(); navigate(`/stocks/${t}`, { ticker: t }) }}
-                      className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-terminal-green/10 text-terminal-green hover:bg-terminal-green/20 transition-colors">{t}</button>
+                      className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-terminal-accent/10 text-terminal-accent hover:bg-terminal-accent/20 transition-colors">{t}</button>
                   ))}
                 </div>
                 <div className="text-[10px] font-mono text-terminal-muted">{story.sourceCount} sources</div>

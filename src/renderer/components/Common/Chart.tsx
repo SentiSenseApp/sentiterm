@@ -7,7 +7,7 @@ interface Props {
   width?: number
 }
 
-export function SparklineChart({ data, color = '#00FF88', height = 40, width = 120 }: Props) {
+export function SparklineChart({ data, color = '#3182CE', height = 40, width = 120 }: Props) {
   if (data.length < 2) return null
 
   const min = Math.min(...data)

@@ -72,9 +72,9 @@ function MarketFlowsView() {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="terminal-card p-4">
-          <div className="data-label mb-3 text-terminal-green">Top Inflows</div>
+          <div className="data-label mb-3 text-terminal-bull">Top Inflows</div>
           <DataTable columns={[
-            { key: 'ticker', header: 'Ticker', render: (r) => <span className="text-terminal-green font-semibold">{r.ticker}</span> },
+            { key: 'ticker', header: 'Ticker', render: (r) => <span className="text-terminal-accent font-semibold">{r.ticker}</span> },
             { key: 'name', header: 'Name', render: (r) => <span className="text-terminal-muted text-xs truncate block max-w-[140px]">{r.name}</span> },
             { key: 'netValue', header: 'Net Value', align: 'right', render: (r) => <span className="positive">{formatValue(r.netValue)}</span> },
             { key: 'buyers', header: 'Buy/Sell', align: 'right', render: (r) => <span>{r.buyerCount}/{r.sellerCount}</span> }
@@ -130,7 +130,7 @@ export function HedgeFundMovesView() {
     [apiKey, reportDate]
   )
   if (!data) return <div className="text-terminal-muted p-4">Loading...</div>
-  const actionColor = (action: string) => action === 'new_position' || action === 'increased' ? 'text-terminal-green' : action === 'exited' || action === 'decreased' ? 'text-terminal-red' : 'text-terminal-muted'
+  const actionColor = (action: string) => action === 'new_position' || action === 'increased' ? 'text-terminal-bull' : action === 'exited' || action === 'decreased' ? 'text-terminal-red' : 'text-terminal-muted'
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -139,7 +139,7 @@ export function HedgeFundMovesView() {
       </div>
       <div className="terminal-card p-4">
         <DataTable columns={[
-          { key: 'ticker', header: 'Ticker', render: (r) => <span className="text-terminal-green font-mono font-semibold">{r.ticker}</span> },
+          { key: 'ticker', header: 'Ticker', render: (r) => <span className="text-terminal-accent font-mono font-semibold">{r.ticker}</span> },
           { key: 'name', header: 'Name', render: (r) => <span className="text-terminal-muted">{r.name}</span>, width: '180px' },
           { key: 'action', header: 'Action', render: (r) => <span className={`text-xs font-mono uppercase ${actionColor(r.action)}`}>{r.action.replace('_', ' ')}</span> },
           { key: 'shares', header: 'Shares', align: 'right', render: (r) => formatShares(r.shares) },
@@ -194,7 +194,7 @@ export function IndexFundActivityView() {
       </div>
       <div className="terminal-card p-4">
         <DataTable columns={[
-          { key: 'ticker', header: 'Ticker', render: (r) => <span className="text-terminal-green font-mono font-semibold">{r.ticker}</span> },
+          { key: 'ticker', header: 'Ticker', render: (r) => <span className="text-terminal-accent font-mono font-semibold">{r.ticker}</span> },
           { key: 'name', header: 'Name', render: (r) => <span className="text-terminal-muted">{r.name}</span> },
           { key: 'netChange', header: 'Net Change', align: 'right', render: (r) => <span className={r.netChange >= 0 ? 'positive' : 'negative'}>{r.netChange >= 0 ? '+' : ''}{formatShares(r.netChange)}</span> }
         ]} data={data.entries} onRowClick={(r) => navigate(`/stocks/${r.ticker}`, { ticker: r.ticker })} />

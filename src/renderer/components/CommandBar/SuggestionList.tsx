@@ -24,7 +24,7 @@ export function SuggestionList({ items, selectedIndex, onSelect }: Props) {
           onClick={() => onSelect(item)}
           className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
             i === selectedIndex
-              ? 'bg-terminal-green/10 text-terminal-green'
+              ? 'bg-terminal-accent/10 text-terminal-accent'
               : 'text-terminal-text hover:bg-terminal-surface'
           }`}
         >

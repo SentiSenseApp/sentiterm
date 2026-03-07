@@ -38,12 +38,12 @@
   .terminal-input {
     @apply bg-terminal-bg border border-terminal-border rounded-md px-3 py-2
            text-terminal-text placeholder-terminal-muted
-           focus:outline-none focus:border-terminal-green/50 focus:ring-1 focus:ring-terminal-green/20
+           focus:outline-none focus:border-terminal-accent/50 focus:ring-1 focus:ring-terminal-accent/20
            font-mono text-sm;
   }
 
   .badge-bullish {
-    @apply bg-terminal-green/15 text-terminal-green text-xs font-mono px-2 py-0.5 rounded;
+    @apply bg-terminal-bull/15 text-terminal-bull text-xs font-mono px-2 py-0.5 rounded;
   }
 
   .badge-bearish {
@@ -63,7 +63,7 @@
   }
 
   .positive {
-    @apply text-terminal-green;
+    @apply text-terminal-bull;
   }
 
   .negative {

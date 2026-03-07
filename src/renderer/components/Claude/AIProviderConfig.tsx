@@ -83,7 +83,7 @@ export function AIProviderConfig({ onClose }: Props) {
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-terminal-green/10 text-terminal-green rounded-md text-sm font-mono hover:bg-terminal-green/20 transition-colors"
+            className="px-4 py-2 bg-terminal-accent/10 text-terminal-accent rounded-md text-sm font-mono hover:bg-terminal-accent/20 transition-colors"
           >
             Save
           </button>

@@ -30,7 +30,7 @@ export function CommandInput({ value, onChange, onSubmit, onArrowDown, onArrowUp
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 border-b border-terminal-border">
-      <span className="text-terminal-green font-mono text-sm">{'\u2318'}K</span>
+      <span className="text-terminal-accent font-mono text-sm">{'\u2318'}K</span>
       <input
         ref={inputRef}
         type="text"

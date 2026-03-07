@@ -45,7 +45,7 @@ export function StockView() {
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-mono font-bold text-terminal-green">{ticker}</h1>
+            <h1 className="text-2xl font-mono font-bold text-terminal-accent">{ticker}</h1>
             {sentiment && (
               <span className={`text-xs font-mono px-2 py-1 rounded ${
                 sentiment.overall > 0.3 ? 'badge-bullish' : sentiment.overall < -0.3 ? 'badge-bearish' : 'badge-neutral'
@@ -91,7 +91,7 @@ export function StockView() {
         {(['overview', 'sentiment', 'holders', 'news'] as Tab[]).map(t => (
           <button key={t} onClick={() => handleTabChange(t)}
             className={`px-4 py-2 text-sm font-mono capitalize transition-colors border-b-2 -mb-px ${
-              tab === t ? 'text-terminal-green border-terminal-green' : 'text-terminal-muted border-transparent hover:text-terminal-text'
+              tab === t ? 'text-terminal-accent border-terminal-accent' : 'text-terminal-muted border-transparent hover:text-terminal-text'
             }`}>{t}</button>
         ))}
       </div>
@@ -113,11 +113,11 @@ function StockOverviewTab({ metrics, sentiment }: { metrics: TerminalStockMetric
           <div className="flex items-center gap-4 mb-3">
             <div className="flex-1">
               <div className="flex justify-between text-xs font-mono mb-1">
-                <span className="text-terminal-green">Bull {sentiment.bullScore}%</span>
+                <span className="text-terminal-bull">Bull {sentiment.bullScore}%</span>
                 <span className="text-terminal-red">Bear {sentiment.bearScore}%</span>
               </div>
               <div className="h-2 bg-terminal-bg rounded-full overflow-hidden flex">
-                <div className="bg-terminal-green/70 h-full" style={{ width: `${sentiment.bullScore}%` }} />
+                <div className="bg-terminal-bull/70 h-full" style={{ width: `${sentiment.bullScore}%` }} />
                 <div className="bg-terminal-red/70 h-full" style={{ width: `${sentiment.bearScore}%` }} />
               </div>
             </div>
@@ -125,7 +125,7 @@ function StockOverviewTab({ metrics, sentiment }: { metrics: TerminalStockMetric
           <div className="grid grid-cols-3 gap-3 text-center">
             <div><div className="data-label">Confidence</div><div className="text-sm font-mono text-terminal-text">{(sentiment.confidence * 100).toFixed(0)}%</div></div>
             <div><div className="data-label">Volume</div><div className="text-sm font-mono text-terminal-text">{sentiment.volume.toLocaleString()}</div></div>
-            <div><div className="data-label">Trend</div><div className={`text-sm font-mono ${sentiment.trend === 'rising' ? 'text-terminal-green' : sentiment.trend === 'falling' ? 'text-terminal-red' : 'text-terminal-muted'}`}>{sentiment.trend === 'rising' ? '\u2191' : sentiment.trend === 'falling' ? '\u2193' : '\u2194'} {sentiment.trend}</div></div>
+            <div><div className="data-label">Trend</div><div className={`text-sm font-mono ${sentiment.trend === 'rising' ? 'text-terminal-bull' : sentiment.trend === 'falling' ? 'text-terminal-red' : 'text-terminal-muted'}`}>{sentiment.trend === 'rising' ? '\u2191' : sentiment.trend === 'falling' ? '\u2193' : '\u2194'} {sentiment.trend}</div></div>
           </div>
         </div>
       )}

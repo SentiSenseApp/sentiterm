@@ -42,14 +42,14 @@ export function Dashboard() {
         <div className="terminal-card p-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="data-label">AI Market Summary</span>
-            <span className="text-terminal-green text-[10px] font-mono">SENTISENSE</span>
+            <span className="text-terminal-accent text-[10px] font-mono">SENTISENSE</span>
           </div>
           <p className="text-terminal-text text-sm leading-relaxed mb-4">{summary.summary}</p>
           <div className="grid grid-cols-2 gap-x-6 gap-y-1">
             {summary.sectorPerformance.map(s => (
               <div key={s.sector} className="flex items-center justify-between text-xs font-mono">
                 <span className="text-terminal-muted">{s.sector}</span>
-                <span className={s.change >= 0 ? 'text-terminal-green' : 'text-terminal-red'}>
+                <span className={s.change >= 0 ? 'text-terminal-bull' : 'text-terminal-red'}>
                   {s.change >= 0 ? '+' : ''}{s.change.toFixed(2)}%
                 </span>
               </div>
@@ -76,7 +76,7 @@ export function Dashboard() {
           <div className="space-y-2">
             {summary.keyThemes.map((theme, i) => (
               <div key={i} className="flex items-start gap-2 text-sm">
-                <span className="text-terminal-green font-mono shrink-0">{'\u2022'}</span>
+                <span className="text-terminal-accent font-mono shrink-0">{'\u2022'}</span>
                 <span className="text-terminal-text/80">{theme}</span>
               </div>
             ))}
@@ -104,9 +104,9 @@ function WatchlistCard({ ticker, onClick }: { ticker: string; onClick: () => voi
   )
 
   return (
-    <button onClick={onClick} className="terminal-card p-4 text-left hover:border-terminal-green/30 transition-colors w-full">
+    <button onClick={onClick} className="terminal-card p-4 text-left hover:border-terminal-accent/30 transition-colors w-full">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-terminal-green font-mono font-semibold text-sm">{stock.ticker}</span>
+        <span className="text-terminal-accent font-mono font-semibold text-sm">{stock.ticker}</span>
         {sentiment && (
           <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
             sentiment.overall > 0.3 ? 'badge-bullish' : sentiment.overall < -0.3 ? 'badge-bearish' : 'badge-neutral'
@@ -125,7 +125,7 @@ function WatchlistCard({ ticker, onClick }: { ticker: string; onClick: () => voi
             {isPositive ? '+' : ''}{stock.change.toFixed(2)} ({isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%)
           </div>
         </div>
-        <SparklineChart data={sparkData} color={isPositive ? '#00FF88' : '#FF4444'} height={32} width={80} />
+        <SparklineChart data={sparkData} color={isPositive ? '#2DD4BF' : '#F87171'} height={32} width={80} />
       </div>
       <div className="flex justify-between mt-2 text-[10px] font-mono text-terminal-muted">
         <span>Vol: {formatVolume(stock.volume)}</span>

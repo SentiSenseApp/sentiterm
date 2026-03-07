@@ -14,9 +14,11 @@ export function Sidebar() {
   return (
     <div className="w-12 bg-terminal-panel border-r border-terminal-border flex flex-col items-center py-3 gap-1 shrink-0">
       {/* Logo */}
-      <div className="w-8 h-8 rounded-lg bg-terminal-green/10 flex items-center justify-center text-terminal-green font-bold text-sm mb-4 cursor-default">
-        S
-      </div>
+      <img
+        src={new URL('../../assets/logo.png', import.meta.url).href}
+        alt="SentiSense"
+        className="w-8 h-8 rounded-lg mb-4 cursor-default"
+      />
 
       {NAV_ITEMS.map((item) => (
         <button
@@ -24,7 +26,7 @@ export function Sidebar() {
           onClick={() => navigate(item.route)}
           className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm transition-colors ${
             currentRoute === item.route || currentRoute.startsWith(item.route + '/')
-              ? 'bg-terminal-green/10 text-terminal-green'
+              ? 'bg-terminal-accent/10 text-terminal-accent'
               : 'text-terminal-muted hover:text-terminal-text hover:bg-terminal-surface'
           }`}
           title={item.label}
@@ -39,7 +41,7 @@ export function Sidebar() {
           className="w-9 h-9 rounded-lg flex items-center justify-center text-sm text-terminal-muted hover:text-terminal-text hover:bg-terminal-surface transition-colors"
           title="Settings"
         >
-          \u2699
+          {'\u2699'}
         </button>
       </div>
     </div>

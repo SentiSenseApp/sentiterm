@@ -13,11 +13,11 @@ export function ChatMessage({ role, content, timestamp }: Props) {
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3`}>
       <div className={`max-w-[90%] rounded-lg px-3 py-2 text-sm ${
         isUser
-          ? 'bg-terminal-green/10 text-terminal-green'
+          ? 'bg-terminal-accent/10 text-terminal-accent'
           : 'bg-terminal-surface text-terminal-text'
       }`}>
         {!isUser && (
-          <div className="text-terminal-green text-xs font-mono mb-1 opacity-60">AI</div>
+          <div className="text-terminal-accent text-xs font-mono mb-1 opacity-60">AI</div>
         )}
         <div className="whitespace-pre-wrap font-sans leading-relaxed">
           {content.split(/(\*\*.*?\*\*)/g).map((part, i) => {

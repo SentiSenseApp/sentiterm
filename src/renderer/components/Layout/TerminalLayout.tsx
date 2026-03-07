@@ -38,7 +38,7 @@ export function TerminalLayout({ children }: Props) {
            style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
         <div className="w-20" /> {/* Space for traffic lights on macOS */}
         <div className="flex items-center gap-2 text-sm text-terminal-muted" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-          <span className="font-mono text-terminal-green font-semibold">SentiTerm</span>
+          <span className="font-mono text-terminal-accent font-semibold">SentiSense Terminal</span>
           <button
             onClick={() => {
               const { setCommandBarOpen } = (window as any).__appStore?.getState?.() || {}
@@ -64,7 +64,7 @@ export function TerminalLayout({ children }: Props) {
         {/* Resize handle */}
         <div
           onMouseDown={handleMouseDown}
-          className={`w-1 cursor-col-resize hover:bg-terminal-green/30 transition-colors shrink-0 ${isDragging ? 'bg-terminal-green/30' : ''}`}
+          className={`w-1 cursor-col-resize hover:bg-terminal-accent/30 transition-colors shrink-0 ${isDragging ? 'bg-terminal-accent/30' : ''}`}
         />
 
         {/* Main content */}
