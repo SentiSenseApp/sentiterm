@@ -21,22 +21,28 @@ interface ChatMessage {
 }
 
 export function setupClaudeIPC(ipcMain: IpcMain): void {
-  ipcMain.handle('claude:chat', async (_event, { message, history, apiKey, model }: {
+  ipcMain.handle('claude:hasEnvKey', () => {
+    return !!process.env.ANTHROPIC_API_KEY
+  })
+
+  ipcMain.handle('claude:chat', async (_event, { message, history, apiKey, keySource, model }: {
     message: string
     history: ChatMessage[]
     apiKey?: string
+    keySource?: 'manual' | 'env' | 'none'
     model?: string
   }) => {
-    if (!apiKey) {
+    const resolvedKey = keySource === 'env' ? process.env.ANTHROPIC_API_KEY : apiKey
+    if (!resolvedKey) {
       return {
         role: 'assistant',
-        content: 'No AI API key configured. Go to Settings to add your Claude or OpenAI API key.\n\nThe terminal works without AI — use Cmd+K to navigate with commands like "AAPL", "NVDA SENT", or "market flows".'
+        content: 'No Claude API key configured. Go to Settings to add your Anthropic API key or select "Use environment variable".\n\nThe terminal works without AI — use Cmd+K to navigate with commands like "AAPL", "NVDA SENT", or "market flows".'
       }
     }
 
     try {
       const { default: Anthropic } = await import('@anthropic-ai/sdk')
-      const client = new Anthropic({ apiKey })
+      const client = new Anthropic({ apiKey: resolvedKey })
 
       const response = await client.messages.create({
         model: model || 'claude-sonnet-4-5-20250929',
@@ -62,16 +68,18 @@ export function setupClaudeIPC(ipcMain: IpcMain): void {
     }
   })
 
-  ipcMain.handle('claude:parseIntent', async (_event, { query, apiKey, model }: {
+  ipcMain.handle('claude:parseIntent', async (_event, { query, apiKey, keySource, model }: {
     query: string
     apiKey?: string
+    keySource?: 'manual' | 'env' | 'none'
     model?: string
   }) => {
-    if (!apiKey) return null
+    const resolvedKey = keySource === 'env' ? process.env.ANTHROPIC_API_KEY : apiKey
+    if (!resolvedKey) return null
 
     try {
       const { default: Anthropic } = await import('@anthropic-ai/sdk')
-      const client = new Anthropic({ apiKey })
+      const client = new Anthropic({ apiKey: resolvedKey })
 
       const response = await client.messages.create({
         model: model || 'claude-sonnet-4-5-20250929',

@@ -5,7 +5,8 @@ const api = {
     chat: (params: { message: string; history: Array<{ role: string; content: string }>; apiKey?: string; model?: string }) =>
       ipcRenderer.invoke('claude:chat', params),
     parseIntent: (params: { query: string; apiKey?: string; model?: string }) =>
-      ipcRenderer.invoke('claude:parseIntent', params)
+      ipcRenderer.invoke('claude:parseIntent', params),
+    hasEnvKey: () => ipcRenderer.invoke('claude:hasEnvKey') as Promise<boolean>
   },
   sentisense: {
     call: (method: string, ...args: unknown[]) =>

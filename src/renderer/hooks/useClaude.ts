@@ -5,8 +5,9 @@ declare global {
   interface Window {
     api?: {
       claude: {
-        chat: (params: { message: string; history: Array<{ role: string; content: string }>; apiKey?: string; model?: string }) => Promise<{ role: string; content: string }>
-        parseIntent: (params: { query: string; apiKey?: string; model?: string }) => Promise<{ route: string; params: Record<string, string> } | null>
+        chat: (params: { message: string; history: Array<{ role: string; content: string }>; apiKey?: string; keySource?: string; model?: string }) => Promise<{ role: string; content: string }>
+        parseIntent: (params: { query: string; apiKey?: string; keySource?: string; model?: string }) => Promise<{ route: string; params: Record<string, string> } | null>
+        hasEnvKey: () => Promise<boolean>
       }
       sentisense: {
         call: (method: string, ...args: unknown[]) => Promise<unknown>
@@ -33,6 +34,7 @@ export function useClaude() {
         message,
         history: chatHistory.map(m => ({ role: m.role, content: m.content })),
         apiKey: settings.aiApiKey,
+        keySource: settings.aiKeySource,
         model: settings.aiModel
       })
       const res = response as { role: string; content: string }
@@ -47,10 +49,11 @@ export function useClaude() {
   }, [chatHistory, settings, addChatMessage])
 
   const parseIntent = useCallback(async (query: string) => {
-    if (!window.api || !settings.aiApiKey) return null
+    if (!window.api || (settings.aiKeySource === 'none')) return null
     return window.api.claude.parseIntent({
       query,
       apiKey: settings.aiApiKey,
+      keySource: settings.aiKeySource,
       model: settings.aiModel
     })
   }, [settings])

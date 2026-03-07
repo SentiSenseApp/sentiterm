@@ -8,8 +8,8 @@ export interface ChatMessage {
 
 interface Settings {
   sentiSenseApiKey: string
-  aiProvider: 'claude' | 'openai' | 'none'
   aiApiKey: string
+  aiKeySource: 'manual' | 'env' | 'none'
   aiModel: string
   showSetupWizard: boolean
 }
@@ -49,8 +49,8 @@ interface AppState {
 
 const DEFAULT_SETTINGS: Settings = {
   sentiSenseApiKey: '',
-  aiProvider: 'claude',
   aiApiKey: '',
+  aiKeySource: 'none',
   aiModel: 'claude-sonnet-4-5-20250929',
   showSetupWizard: true,
 }

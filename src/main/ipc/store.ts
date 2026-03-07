@@ -4,8 +4,8 @@ import Store from 'electron-store'
 interface PersistedState {
   settings: {
     sentiSenseApiKey: string
-    aiProvider: 'claude' | 'openai' | 'none'
     aiApiKey: string
+    aiKeySource: 'manual' | 'env' | 'none'
     aiModel: string
     showSetupWizard: boolean
   }
@@ -17,8 +17,8 @@ const store = new Store<PersistedState>({
   defaults: {
     settings: {
       sentiSenseApiKey: '',
-      aiProvider: 'claude',
       aiApiKey: '',
+      aiKeySource: 'none',
       aiModel: 'claude-sonnet-4-5-20250929',
       showSetupWizard: true,
     },
