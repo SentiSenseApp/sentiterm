@@ -8,6 +8,7 @@ declare global {
         chat: (params: { message: string; history: Array<{ role: string; content: string }>; apiKey?: string; keySource?: string; model?: string }) => Promise<{ role: string; content: string }>
         parseIntent: (params: { query: string; apiKey?: string; keySource?: string; model?: string }) => Promise<{ route: string; params: Record<string, string> } | null>
         hasEnvKey: () => Promise<boolean>
+        hasClaudeCode: () => Promise<boolean>
       }
       sentisense: {
         call: (method: string, ...args: unknown[]) => Promise<unknown>

@@ -8,14 +8,54 @@ interface Props {
 export function AIProviderConfig({ onClose }: Props) {
   const { settings, updateSettings } = useAppStore()
   const [hasEnvKey, setHasEnvKey] = useState(false)
+  const [hasClaudeCode, setHasClaudeCode] = useState(false)
+  const [detected, setDetected] = useState(false)
 
   useEffect(() => {
-    window.api?.claude.hasEnvKey().then(setHasEnvKey)
+    Promise.all([
+      window.api?.claude.hasEnvKey() ?? Promise.resolve(false),
+      window.api?.claude.hasClaudeCode() ?? Promise.resolve(false),
+    ]).then(([env, cc]) => {
+      setHasEnvKey(env)
+      setHasClaudeCode(cc)
+      setDetected(true)
+      // Auto-select Claude Code if available and user hasn't chosen yet
+      if (cc && settings.aiKeySource === 'none') {
+        updateSettings({ aiKeySource: 'claude-code' })
+      }
+    })
   }, [])
 
+  const selectClaudeCode = () => updateSettings({ aiKeySource: 'claude-code', aiApiKey: '' })
   const selectEnv = () => updateSettings({ aiKeySource: 'env', aiApiKey: '' })
   const selectManual = () => updateSettings({ aiKeySource: 'manual' })
   const selectNone = () => updateSettings({ aiKeySource: 'none', aiApiKey: '' })
+
+  function RadioOption({ selected, onClick, title, subtitle, badge }: {
+    selected: boolean; onClick: () => void; title: string; subtitle: string; badge?: React.ReactNode
+  }) {
+    return (
+      <button
+        onClick={onClick}
+        className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
+          selected ? 'border-terminal-accent bg-terminal-accent/5' : 'border-terminal-border hover:border-terminal-muted'
+        }`}
+      >
+        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+          selected ? 'border-terminal-accent' : 'border-terminal-muted'
+        }`}>
+          {selected && <div className="w-2 h-2 rounded-full bg-terminal-accent" />}
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-terminal-text font-medium">{title}</span>
+            {badge}
+          </div>
+          <div className="text-xs text-terminal-muted mt-0.5">{subtitle}</div>
+        </div>
+      </button>
+    )
+  }
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
@@ -41,67 +81,42 @@ export function AIProviderConfig({ onClose }: Props) {
         <div className="mb-5">
           <label className="data-label block mb-3">Claude AI Assistant</label>
           <div className="space-y-2">
+            {/* Option: Claude Code (local) */}
+            {hasClaudeCode && (
+              <RadioOption
+                selected={settings.aiKeySource === 'claude-code'}
+                onClick={selectClaudeCode}
+                title="Use Claude Code"
+                subtitle="Uses your local Claude Code installation. No additional API key needed."
+                badge={<span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-terminal-bull/15 text-terminal-bull">DETECTED</span>}
+              />
+            )}
+
             {/* Option: Use environment variable */}
             {hasEnvKey && (
-              <button
+              <RadioOption
+                selected={settings.aiKeySource === 'env'}
                 onClick={selectEnv}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
-                  settings.aiKeySource === 'env'
-                    ? 'border-terminal-accent bg-terminal-accent/5'
-                    : 'border-terminal-border hover:border-terminal-muted'
-                }`}
-              >
-                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                  settings.aiKeySource === 'env' ? 'border-terminal-accent' : 'border-terminal-muted'
-                }`}>
-                  {settings.aiKeySource === 'env' && <div className="w-2 h-2 rounded-full bg-terminal-accent" />}
-                </div>
-                <div>
-                  <div className="text-sm text-terminal-text font-medium">Use environment variable</div>
-                  <div className="text-xs text-terminal-muted mt-0.5">ANTHROPIC_API_KEY detected. Uses your existing API key.</div>
-                </div>
-              </button>
+                title="Use environment variable"
+                subtitle="ANTHROPIC_API_KEY detected. Billed to your Anthropic account."
+              />
             )}
 
             {/* Option: Enter key manually */}
-            <button
+            <RadioOption
+              selected={settings.aiKeySource === 'manual'}
               onClick={selectManual}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
-                settings.aiKeySource === 'manual'
-                  ? 'border-terminal-accent bg-terminal-accent/5'
-                  : 'border-terminal-border hover:border-terminal-muted'
-              }`}
-            >
-              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                settings.aiKeySource === 'manual' ? 'border-terminal-accent' : 'border-terminal-muted'
-              }`}>
-                {settings.aiKeySource === 'manual' && <div className="w-2 h-2 rounded-full bg-terminal-accent" />}
-              </div>
-              <div>
-                <div className="text-sm text-terminal-text font-medium">Enter API key manually</div>
-                <div className="text-xs text-terminal-muted mt-0.5">Paste your Anthropic API key from console.anthropic.com</div>
-              </div>
-            </button>
+              title="Enter API key manually"
+              subtitle="Paste your Anthropic API key from console.anthropic.com"
+            />
 
             {/* Option: Disable AI */}
-            <button
+            <RadioOption
+              selected={settings.aiKeySource === 'none'}
               onClick={selectNone}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
-                settings.aiKeySource === 'none'
-                  ? 'border-terminal-accent bg-terminal-accent/5'
-                  : 'border-terminal-border hover:border-terminal-muted'
-              }`}
-            >
-              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                settings.aiKeySource === 'none' ? 'border-terminal-accent' : 'border-terminal-muted'
-              }`}>
-                {settings.aiKeySource === 'none' && <div className="w-2 h-2 rounded-full bg-terminal-accent" />}
-              </div>
-              <div>
-                <div className="text-sm text-terminal-text font-medium">Disable AI assistant</div>
-                <div className="text-xs text-terminal-muted mt-0.5">Terminal-only mode. Use Cmd+K for navigation.</div>
-              </div>
-            </button>
+              title="Disable AI assistant"
+              subtitle="Terminal-only mode. Use Cmd+K for navigation."
+            />
           </div>
         </div>
 
@@ -118,8 +133,8 @@ export function AIProviderConfig({ onClose }: Props) {
           </div>
         )}
 
-        {/* Cost warning */}
-        {settings.aiKeySource !== 'none' && (
+        {/* Cost warning for API key modes */}
+        {(settings.aiKeySource === 'env' || settings.aiKeySource === 'manual') && (
           <div className="mb-5 p-3 rounded-lg bg-terminal-amber/5 border border-terminal-amber/20">
             <p className="text-terminal-amber text-xs font-mono">
               AI assistant uses Claude API which has per-request costs. Usage is billed to your Anthropic account.
@@ -127,8 +142,8 @@ export function AIProviderConfig({ onClose }: Props) {
           </div>
         )}
 
-        {/* Model */}
-        {settings.aiKeySource !== 'none' && (
+        {/* Model selector — only for API key modes */}
+        {(settings.aiKeySource === 'env' || settings.aiKeySource === 'manual') && (
           <div className="mb-5">
             <label className="data-label block mb-2">Claude Model</label>
             <select

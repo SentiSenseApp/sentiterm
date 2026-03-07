@@ -15,6 +15,7 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.71",
     "@anthropic-ai/sdk": "^0.39.0",
     "electron-store": "^8.2.0",
     "sentisense": "file:../sentisense-node",

@@ -5,7 +5,7 @@ interface PersistedState {
   settings: {
     sentiSenseApiKey: string
     aiApiKey: string
-    aiKeySource: 'manual' | 'env' | 'none'
+    aiKeySource: 'manual' | 'env' | 'claude-code' | 'none'
     aiModel: string
     showSetupWizard: boolean
   }

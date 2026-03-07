@@ -7,13 +7,8 @@ import { useAppStore } from '../../store'
 export function ClaudePanel() {
   const { sendMessage, chatHistory } = useClaude()
   const [sending, setSending] = useState(false)
-  const [hasEnvKey, setHasEnvKey] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const settings = useAppStore(s => s.settings)
-
-  useEffect(() => {
-    window.api?.claude.hasEnvKey().then(setHasEnvKey)
-  }, [])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -37,6 +32,9 @@ export function ClaudePanel() {
         <span className="text-terminal-accent text-xs font-mono font-semibold">AI ASSISTANT</span>
         {settings.aiKeySource === 'none' && (
           <span className="ml-2 text-terminal-amber text-[10px] font-mono">(NO KEY)</span>
+        )}
+        {settings.aiKeySource === 'claude-code' && (
+          <span className="ml-2 text-terminal-bull text-[10px] font-mono">(CLAUDE CODE)</span>
         )}
         {settings.aiKeySource === 'env' && (
           <span className="ml-2 text-terminal-bull text-[10px] font-mono">(ENV)</span>
