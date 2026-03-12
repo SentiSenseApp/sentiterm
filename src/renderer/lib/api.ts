@@ -188,7 +188,7 @@ export async function fetchAISummary(apiKey: string, ticker: string): Promise<Te
 
 interface SDKStory {
   cluster: { id: string; title: string; summarizedContent: string; clusterSize: number; averageSentiment: number; createdAt: number }
-  displayTickers: string[]; tickers: string[]; impactScore: number; representativeTimestamp: number
+  displayTickers: string[]; tickers: string[]; impactScore: number; brokeAt: number
 }
 
 function sentimentLabel(score: number): 'bullish' | 'bearish' | 'neutral' {
@@ -206,7 +206,7 @@ function transformStory(s: SDKStory): TerminalStory {
     sentimentLabel: sentimentLabel(s.cluster.averageSentiment),
     tickers: s.displayTickers?.length ? s.displayTickers : (s.tickers ?? []),
     sourceCount: s.cluster.clusterSize,
-    publishedAt: new Date(s.representativeTimestamp).toISOString(),
+    publishedAt: new Date(s.brokeAt * 1000).toISOString(),
     category: 'News',
   }
 }
