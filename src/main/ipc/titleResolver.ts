@@ -209,12 +209,19 @@ async function fetchTitle(url: string): Promise<string> {
 
 // ── oEmbed fetcher (main process — no CORS) ───────────────────
 
+// oEmbed cache — same LRU pattern as title cache, 30min TTL
+const oembedCache = new Map<string, { html: string; ts: number }>()
+
 async function fetchOEmbed(url: string): Promise<string | null> {
+  // Check cache
+  const cached = oembedCache.get(url)
+  if (cached && Date.now() - cached.ts < 30 * 60_000) return cached.html
+
   const domain = extractDomain(url)
   let oembedUrl = ''
 
   if (domain === 'x.com' || domain === 'twitter.com') {
-    oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&omit_script=true&dnt=true&theme=dark&maxwidth=380`
+    oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&omit_script=true&dnt=true&theme=dark&maxwidth=500`
   } else if (domain.includes('reddit.com')) {
     oembedUrl = `https://www.reddit.com/oembed?url=${encodeURIComponent(url)}`
   }
@@ -231,7 +238,16 @@ async function fetchOEmbed(url: string): Promise<string | null> {
     clearTimeout(timer)
     if (!res.ok) return null
     const data = await res.json()
-    return data.html ?? null
+    const html = data.html ?? null
+    if (html) {
+      // Evict oldest if at capacity
+      if (oembedCache.size >= MAX_CACHE) {
+        const oldest = oembedCache.keys().next().value
+        if (oldest) oembedCache.delete(oldest)
+      }
+      oembedCache.set(url, { html, ts: Date.now() })
+    }
+    return html
   } catch {
     return null
   }

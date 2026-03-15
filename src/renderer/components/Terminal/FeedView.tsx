@@ -400,26 +400,29 @@ export function FeedView() {
         {docs?.length === 0 && (
           <div className="text-terminal-muted text-sm font-mono p-4 text-center">No documents found.</div>
         )}
-        {docs?.map((doc, i) => {
-          if (isEmbedMode) {
-            const tickers = doc.sentiment
-              .filter(s => s.ticker)
-              .map(s => s.ticker!)
-              .filter((t, idx, arr) => arr.indexOf(t) === idx)
-              .slice(0, 5)
-            return (
-              <EmbedFeedItem
-                key={doc.id}
-                url={doc.url}
-                source={doc.source}
-                sentiment={doc.averageSentiment}
-                tickers={tickers}
-                publishedAt={doc.published}
-                onNavigate={(t) => navigate(`/stocks/${t}`, { ticker: t })}
-              />
-            )
-          }
-          return (
+        {isEmbedMode ? (
+          <div className="grid grid-cols-2 gap-3 py-3">
+            {docs?.map((doc) => {
+              const docTickers = doc.sentiment
+                .filter(s => s.ticker)
+                .map(s => s.ticker!)
+                .filter((t, idx, arr) => arr.indexOf(t) === idx)
+                .slice(0, 5)
+              return (
+                <EmbedFeedItem
+                  key={doc.id}
+                  url={doc.url}
+                  source={doc.source}
+                  sentiment={doc.averageSentiment}
+                  tickers={docTickers}
+                  publishedAt={doc.published}
+                  onNavigate={(t) => navigate(`/stocks/${t}`, { ticker: t })}
+                />
+              )
+            })}
+          </div>
+        ) : (
+          docs?.map((doc, i) => (
             <FeedItem
               key={doc.id}
               doc={doc}
@@ -429,8 +432,8 @@ export function FeedView() {
               onNavigate={(t) => navigate(`/stocks/${t}`, { ticker: t })}
               onPreview={(url, source, rect) => setPreview({ url, source, rect })}
             />
-          )
-        })}
+          ))
+        )}
       </div>
 
       {/* Pagination */}
