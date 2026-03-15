@@ -3,6 +3,7 @@ import { join } from 'path'
 import { setupClaudeIPC } from './ipc/claude'
 import { setupSentiSenseIPC } from './ipc/sentisense'
 import { setupStoreIPC } from './ipc/store'
+import { setupTitleResolverIPC } from './ipc/titleResolver'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -47,6 +48,7 @@ app.whenReady().then(() => {
   setupClaudeIPC(ipcMain)
   setupSentiSenseIPC(ipcMain)
   setupStoreIPC(ipcMain)
+  setupTitleResolverIPC(ipcMain)
   createWindow()
 
   app.on('activate', () => {

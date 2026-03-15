@@ -134,6 +134,19 @@ export const FUNCTION_REGISTRY: FunctionDef[] = [
     category: 'navigation'
   },
   {
+    id: 'feeds',
+    name: 'Live Feed',
+    description: 'Raw document feed with sentiment from all sources',
+    aliases: ['FEED', 'DOCS'],
+    patterns: [
+      /^(?:feeds?|live\s+feed)$/i,
+      /^(?:docs|documents)$/i,
+      /^(?:raw\s+)?feed$/i
+    ],
+    route: '/feeds',
+    category: 'navigation'
+  },
+  {
     id: 'market_overview',
     name: 'Market Overview',
     description: 'Market indexes and status',

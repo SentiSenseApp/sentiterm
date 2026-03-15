@@ -8,6 +8,7 @@ import { StockView } from './components/Terminal/StockView'
 import { NewsStories } from './components/Terminal/NewsStories'
 import { InstitutionalFlows, HedgeFundMovesView, ActivistWatchView, IndexFundActivityView } from './components/Terminal/InstitutionalFlows'
 import { MarketOverview } from './components/Terminal/MarketOverview'
+import { FeedView } from './components/Terminal/FeedView'
 import { useCommandBar } from './hooks/useCommandBar'
 import { useAppStore } from './store'
 
@@ -25,6 +26,7 @@ function Router() {
 
   // Other routes
   if (currentRoute === '/stories') return <NewsStories />
+  if (currentRoute === '/feeds') return <FeedView />
   if (currentRoute === '/market') return <MarketOverview />
 
   // Default

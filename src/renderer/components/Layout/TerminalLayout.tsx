@@ -16,8 +16,8 @@ export function TerminalLayout({ children }: Props) {
     setIsDragging(true)
 
     const handleMouseMove = (e: MouseEvent) => {
-      // 12px sidebar + claude panel
-      const newWidth = Math.min(Math.max(e.clientX - 48, 240), 600)
+      // 14 sidebar (w-14 = 56px) + claude panel
+      const newWidth = Math.min(Math.max(e.clientX - 56, 240), 600)
       setClaudeWidth(newWidth)
     }
 

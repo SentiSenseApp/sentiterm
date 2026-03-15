@@ -20,6 +20,11 @@ const api = {
     set: (key: string, value: unknown) => ipcRenderer.invoke('store:set', key, value),
     getAll: () => ipcRenderer.invoke('store:getAll')
   },
+  titles: {
+    resolve: (url: string) => ipcRenderer.invoke('titles:resolve', url) as Promise<string>,
+    resolveBatch: (urls: string[]) => ipcRenderer.invoke('titles:resolveBatch', urls) as Promise<Record<string, string>>,
+    oembed: (url: string) => ipcRenderer.invoke('titles:oembed', url) as Promise<string | null>,
+  },
   platform: process.platform
 }
 
