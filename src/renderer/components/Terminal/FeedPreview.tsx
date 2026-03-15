@@ -130,6 +130,15 @@ export function FeedPreview({ url, source, onClose, anchorRect }: Props) {
           <div
             className="embed-content [&_blockquote]:border-none [&_blockquote]:p-0 [&_blockquote]:m-0"
             dangerouslySetInnerHTML={{ __html: embedHtml }}
+            onClick={(e) => {
+              // Intercept all link clicks inside the embed → open in default browser
+              const target = (e.target as HTMLElement).closest('a')
+              if (target?.href) {
+                e.preventDefault()
+                e.stopPropagation()
+                window.open(target.href, '_blank')
+              }
+            }}
           />
         )}
       </div>
