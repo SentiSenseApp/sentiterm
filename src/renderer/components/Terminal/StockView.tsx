@@ -199,9 +199,9 @@ function StockOverviewTab({ ticker, apiKey, metrics, sentiment }: {
         <div className="terminal-card p-4">
           <div className="data-label mb-3">Related Stocks</div>
           <div className="flex gap-2 flex-wrap">
-            {similar.map(s => (
+            {similar.map((s, i) => (
               <button
-                key={s.ticker}
+                key={`${s.ticker}-${i}`}
                 onClick={() => navigate(`/stocks/${s.ticker}`, { ticker: s.ticker })}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-terminal-surface hover:bg-terminal-accent/10 hover:text-terminal-accent transition-colors"
               >
