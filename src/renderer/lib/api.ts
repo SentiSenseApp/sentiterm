@@ -3,7 +3,7 @@ import type {
   TerminalBullBearAnalysis, TerminalMarketOverview, TerminalMarketSummary,
   TerminalStory, TerminalMarketFlows, TerminalFlowEntry,
   TerminalInstitutionalHolders, TerminalHedgeFundMoves, TerminalActivistStake,
-  TerminalIndexFundActivity, StockSearchResult
+  TerminalIndexFundActivity, StockSearchResult, TerminalChartData
 } from './types'
 
 // ── Cache ───────────────────────────────────────────────────
@@ -397,6 +397,43 @@ export async function fetchIndexFundActivity(apiKey: string, reportDate: string)
         funds: [],
       }))
     }
+  })
+}
+
+// ── Chart ───────────────────────────────────────────────
+
+export async function fetchChart(apiKey: string, ticker: string, timeframe: '1M' | '3M' | '6M' | '1Y' = '3M'): Promise<TerminalChartData> {
+  return cached(`chart:${ticker}:${timeframe}`, TTL.price, async () => {
+    const chart = await call<{ ticker: string; timeframe: string; data: Array<{ date: string; close: number }> }>(
+      apiKey, 'stocks.getChart', ticker, { timeframe }
+    )
+    return {
+      ticker: chart.ticker,
+      timeframe: chart.timeframe,
+      data: (chart.data ?? []).map(d => ({ date: d.date, close: num(d.close) })),
+    }
+  })
+}
+
+// ── Stock Images ────────────────────────────────────────
+
+export async function fetchStockImage(apiKey: string, ticker: string): Promise<{ iconUrl: string | null; logoUrl: string | null }> {
+  return cached(`image:${ticker}`, TTL.profile, async () => {
+    const images = await call<Record<string, { iconUrl: string | null; logoUrl: string | null }>>(
+      apiKey, 'stocks.getImages', [ticker]
+    )
+    return images[ticker] ?? { iconUrl: null, logoUrl: null }
+  })
+}
+
+// ── Similar Stocks ──────────────────────────────────────
+
+export async function fetchSimilarStocks(apiKey: string, ticker: string): Promise<StockSearchResult[]> {
+  return cached(`similar:${ticker}`, TTL.profile, async () => {
+    const similar = await call<Array<{ ticker: string; name: string }>>(
+      apiKey, 'stocks.getSimilar', ticker, { limit: 5 }
+    )
+    return similar.map(s => ({ ticker: s.ticker, name: s.name }))
   })
 }
 

@@ -96,7 +96,7 @@ function MarketFlowsView() {
 
 function StockHoldersView({ ticker }: { ticker: string }) {
   const apiKey = useAppStore().settings.sentiSenseApiKey
-  const { quarters, reportDate } = useQuarterSelector()
+  const { quarters, reportDate, setSelectedQuarter } = useQuarterSelector()
   const { data: holders } = useSentiSenseQuery<TerminalInstitutionalHolders>(
     async () => reportDate ? fetchHolders(apiKey, ticker, reportDate) : { ticker, totalInstitutional: 0, holders: [] },
     [apiKey, ticker, reportDate]
@@ -107,7 +107,7 @@ function StockHoldersView({ ticker }: { ticker: string }) {
       <div className="terminal-card p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="data-label">Institutional Holders</div>
-          <QuarterSelect quarters={quarters ?? null} value={reportDate} onChange={() => {}} />
+          <QuarterSelect quarters={quarters ?? null} value={reportDate} onChange={setSelectedQuarter} />
         </div>
         <DataTable columns={[
           { key: 'name', header: 'Holder', render: (r) => <span className="text-terminal-text font-medium">{r.name}</span>, width: '200px' },

@@ -4,10 +4,12 @@ import { useSentiSenseQuery } from '../../hooks/useSentiSense'
 import { SentimentView } from './SentimentView'
 import { InstitutionalFlows } from './InstitutionalFlows'
 import { NewsStories } from './NewsStories'
-import { fetchStockData, fetchStockMetrics, fetchSentiment } from '../../lib/api'
-import type { TerminalStockData, TerminalStockMetrics, TerminalSentimentData } from '../../lib/types'
+import { AreaChart } from '../Common/Chart'
+import { fetchStockData, fetchStockMetrics, fetchSentiment, fetchChart, fetchStockImage, fetchSimilarStocks } from '../../lib/api'
+import type { TerminalStockData, TerminalStockMetrics, TerminalSentimentData, TerminalChartData, StockSearchResult } from '../../lib/types'
 
 type Tab = 'overview' | 'sentiment' | 'holders' | 'news'
+type Timeframe = '1M' | '3M' | '6M' | '1Y'
 
 export function StockView() {
   const { routeParams, currentRoute, navigate, watchlist, addToWatchlist, removeFromWatchlist, settings } = useAppStore()
@@ -30,6 +32,9 @@ export function StockView() {
   const { data: sentiment } = useSentiSenseQuery<TerminalSentimentData>(
     async () => fetchSentiment(apiKey, ticker), [apiKey, ticker]
   )
+  const { data: image } = useSentiSenseQuery<{ iconUrl: string | null; logoUrl: string | null }>(
+    async () => fetchStockImage(apiKey, ticker), [apiKey, ticker]
+  )
 
   const isWatching = watchlist.includes(ticker)
   const isPositive = (stock?.changePercent ?? 0) >= 0
@@ -40,11 +45,16 @@ export function StockView() {
     else navigate(`/stocks/${ticker}/${newTab}`, { ticker })
   }
 
+  const logoSrc = image?.logoUrl || image?.iconUrl
+
   return (
     <div className="p-6">
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3">
+            {logoSrc && (
+              <img src={logoSrc} alt="" className="w-8 h-8 rounded-lg object-contain bg-terminal-surface" />
+            )}
             <h1 className="text-2xl font-mono font-bold text-terminal-accent">{ticker}</h1>
             {sentiment && (
               <span className={`text-xs font-mono px-2 py-1 rounded ${
@@ -96,7 +106,7 @@ export function StockView() {
         ))}
       </div>
 
-      {tab === 'overview' && <StockOverviewTab metrics={metrics} sentiment={sentiment} />}
+      {tab === 'overview' && <StockOverviewTab ticker={ticker} apiKey={apiKey} metrics={metrics} sentiment={sentiment} />}
       {tab === 'sentiment' && <SentimentView ticker={ticker} />}
       {tab === 'holders' && <InstitutionalFlows ticker={ticker} />}
       {tab === 'news' && <NewsStories ticker={ticker} />}
@@ -104,42 +114,100 @@ export function StockView() {
   )
 }
 
-function StockOverviewTab({ metrics, sentiment }: { metrics: TerminalStockMetrics | null; sentiment: TerminalSentimentData | null }) {
+function StockOverviewTab({ ticker, apiKey, metrics, sentiment }: {
+  ticker: string; apiKey: string;
+  metrics: TerminalStockMetrics | null; sentiment: TerminalSentimentData | null
+}) {
+  const { navigate } = useAppStore()
+  const [timeframe, setTimeframe] = useState<Timeframe>('3M')
+
+  const { data: chart } = useSentiSenseQuery<TerminalChartData>(
+    async () => fetchChart(apiKey, ticker, timeframe), [apiKey, ticker, timeframe]
+  )
+  const { data: similar } = useSentiSenseQuery<StockSearchResult[]>(
+    async () => fetchSimilarStocks(apiKey, ticker), [apiKey, ticker]
+  )
+
   return (
-    <div className="grid grid-cols-2 gap-4">
-      {sentiment && (
-        <div className="terminal-card p-4">
-          <div className="data-label mb-3">Sentiment Overview</div>
-          <div className="flex items-center gap-4 mb-3">
-            <div className="flex-1">
-              <div className="flex justify-between text-xs font-mono mb-1">
-                <span className="text-terminal-bull">Bull {sentiment.bullScore}%</span>
-                <span className="text-terminal-red">Bear {sentiment.bearScore}%</span>
-              </div>
-              <div className="h-2 bg-terminal-bg rounded-full overflow-hidden flex">
-                <div className="bg-terminal-bull/70 h-full" style={{ width: `${sentiment.bullScore}%` }} />
-                <div className="bg-terminal-red/70 h-full" style={{ width: `${sentiment.bearScore}%` }} />
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div><div className="data-label">Confidence</div><div className="text-sm font-mono text-terminal-text">{(sentiment.confidence * 100).toFixed(0)}%</div></div>
-            <div><div className="data-label">Volume</div><div className="text-sm font-mono text-terminal-text">{sentiment.volume.toLocaleString()}</div></div>
-            <div><div className="data-label">Trend</div><div className={`text-sm font-mono ${sentiment.trend === 'rising' ? 'text-terminal-bull' : sentiment.trend === 'falling' ? 'text-terminal-red' : 'text-terminal-muted'}`}>{sentiment.trend === 'rising' ? '\u2191' : sentiment.trend === 'falling' ? '\u2193' : '\u2194'} {sentiment.trend}</div></div>
+    <div className="space-y-4">
+      {/* Price chart */}
+      <div className="terminal-card p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="data-label">Price Chart</div>
+          <div className="flex gap-1">
+            {(['1M', '3M', '6M', '1Y'] as Timeframe[]).map(tf => (
+              <button
+                key={tf}
+                onClick={() => setTimeframe(tf)}
+                className={`px-2 py-0.5 text-[10px] font-mono rounded transition-colors ${
+                  timeframe === tf
+                    ? 'bg-terminal-accent/15 text-terminal-accent'
+                    : 'text-terminal-muted/50 hover:text-terminal-muted'
+                }`}
+              >
+                {tf}
+              </button>
+            ))}
           </div>
         </div>
-      )}
-      {metrics && (
+        <AreaChart data={chart?.data ?? []} height={180} />
+      </div>
+
+      {/* Metrics grid */}
+      <div className="grid grid-cols-2 gap-4">
+        {sentiment && (
+          <div className="terminal-card p-4">
+            <div className="data-label mb-3">Sentiment Overview</div>
+            <div className="flex items-center gap-4 mb-3">
+              <div className="flex-1">
+                <div className="flex justify-between text-xs font-mono mb-1">
+                  <span className="text-terminal-bull">Bull {sentiment.bullScore}%</span>
+                  <span className="text-terminal-red">Bear {sentiment.bearScore}%</span>
+                </div>
+                <div className="h-2 bg-terminal-bg rounded-full overflow-hidden flex">
+                  <div className="bg-terminal-bull/70 h-full" style={{ width: `${sentiment.bullScore}%` }} />
+                  <div className="bg-terminal-red/70 h-full" style={{ width: `${sentiment.bearScore}%` }} />
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div><div className="data-label">Confidence</div><div className="text-sm font-mono text-terminal-text">{(sentiment.confidence * 100).toFixed(0)}%</div></div>
+              <div><div className="data-label">Volume</div><div className="text-sm font-mono text-terminal-text">{sentiment.volume.toLocaleString()}</div></div>
+              <div><div className="data-label">Trend</div><div className={`text-sm font-mono ${sentiment.trend === 'rising' ? 'text-terminal-bull' : sentiment.trend === 'falling' ? 'text-terminal-red' : 'text-terminal-muted'}`}>{sentiment.trend === 'rising' ? '\u2191' : sentiment.trend === 'falling' ? '\u2193' : '\u2194'} {sentiment.trend}</div></div>
+            </div>
+          </div>
+        )}
+        {metrics && (
+          <div className="terminal-card p-4">
+            <div className="data-label mb-3">Key Metrics</div>
+            <div className="grid grid-cols-2 gap-y-3 gap-x-6">
+              {[
+                ['P/E Ratio', metrics.pe.toFixed(1)], ['EPS', `$${metrics.eps.toFixed(2)}`],
+                ['Dividend Yield', `${(metrics.dividendYield * 100).toFixed(2)}%`], ['Beta', metrics.beta.toFixed(2)],
+                ['52W High', `$${metrics.week52High.toFixed(2)}`], ['52W Low', `$${metrics.week52Low.toFixed(2)}`],
+                ['Shares Out', `${(metrics.sharesOutstanding / 1e9).toFixed(2)}B`], ['Avg Volume', `${(metrics.avgVolume / 1e6).toFixed(1)}M`]
+              ].map(([label, value]) => (
+                <div key={label} className="flex justify-between"><span className="text-terminal-muted text-xs">{label}</span><span className="text-terminal-text text-xs font-mono">{value}</span></div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Similar Stocks */}
+      {similar && similar.length > 0 && (
         <div className="terminal-card p-4">
-          <div className="data-label mb-3">Key Metrics</div>
-          <div className="grid grid-cols-2 gap-y-3 gap-x-6">
-            {[
-              ['P/E Ratio', metrics.pe.toFixed(1)], ['EPS', `$${metrics.eps.toFixed(2)}`],
-              ['Dividend Yield', `${(metrics.dividendYield * 100).toFixed(2)}%`], ['Beta', metrics.beta.toFixed(2)],
-              ['52W High', `$${metrics.week52High.toFixed(2)}`], ['52W Low', `$${metrics.week52Low.toFixed(2)}`],
-              ['Shares Out', `${(metrics.sharesOutstanding / 1e9).toFixed(2)}B`], ['Avg Volume', `${(metrics.avgVolume / 1e6).toFixed(1)}M`]
-            ].map(([label, value]) => (
-              <div key={label} className="flex justify-between"><span className="text-terminal-muted text-xs">{label}</span><span className="text-terminal-text text-xs font-mono">{value}</span></div>
+          <div className="data-label mb-3">Related Stocks</div>
+          <div className="flex gap-2 flex-wrap">
+            {similar.map(s => (
+              <button
+                key={s.ticker}
+                onClick={() => navigate(`/stocks/${s.ticker}`, { ticker: s.ticker })}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-terminal-surface hover:bg-terminal-accent/10 hover:text-terminal-accent transition-colors"
+              >
+                <span className="text-terminal-accent text-xs font-mono font-semibold">{s.ticker}</span>
+                <span className="text-terminal-muted text-[10px] truncate max-w-[120px]">{s.name}</span>
+              </button>
             ))}
           </div>
         </div>

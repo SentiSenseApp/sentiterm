@@ -141,3 +141,14 @@ export interface StockSearchResult {
   ticker: string
   name: string
 }
+
+export interface TerminalChartPoint {
+  date: string
+  close: number
+}
+
+export interface TerminalChartData {
+  ticker: string
+  timeframe: string
+  data: TerminalChartPoint[]
+}
