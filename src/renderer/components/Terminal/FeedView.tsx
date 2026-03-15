@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useAppStore } from '../../store'
 import { useSentiSenseQuery } from '../../hooks/useSentiSense'
 import { FeedPreview } from './FeedPreview'
+import { EmbedFeedItem } from './EmbedFeedItem'
 
 type SourceFilter = 'news' | 'reddit' | 'x' | 'substack'
 
@@ -311,7 +312,8 @@ export function FeedView() {
   const totalPages = allDocs ? Math.ceil(allDocs.length / PAGE_SIZE) : 0
   const docs = allDocs?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
-  const { titles, getState } = useCascadingTitles(docs)
+  const isEmbedMode = filter === 'x' || filter === 'reddit'
+  const { titles, getState } = useCascadingTitles(isEmbedMode ? undefined : docs)
 
   const [preview, setPreview] = useState<{ url: string; source: string; rect: DOMRect } | null>(null)
 
@@ -369,12 +371,19 @@ export function FeedView() {
       </div>
 
       {/* Column headers */}
-      <div className="flex items-center gap-3 px-2 py-1.5 border-b border-terminal-border text-[10px] font-mono text-terminal-muted/50 uppercase tracking-wider">
-        <span className="w-5" />
-        <span className="flex-1">Title</span>
-        <span className="w-7" />
-        <span className="w-1" />
-      </div>
+      {!isEmbedMode && (
+        <div className="flex items-center gap-3 px-2 py-1.5 border-b border-terminal-border text-[10px] font-mono text-terminal-muted/50 uppercase tracking-wider">
+          <span className="w-5" />
+          <span className="flex-1">Title</span>
+          <span className="w-7" />
+          <span className="w-1" />
+        </div>
+      )}
+      {isEmbedMode && (
+        <div className="px-2 py-1.5 border-b border-terminal-border text-[10px] font-mono text-terminal-muted/50 uppercase tracking-wider">
+          {filter === 'x' ? 'X Posts' : 'Reddit Posts'} — Official Embeds
+        </div>
+      )}
 
       {/* Feed */}
       <div className="flex-1 overflow-y-auto">
@@ -391,17 +400,37 @@ export function FeedView() {
         {docs?.length === 0 && (
           <div className="text-terminal-muted text-sm font-mono p-4 text-center">No documents found.</div>
         )}
-        {docs?.map((doc, i) => (
-          <FeedItem
-            key={doc.id}
-            doc={doc}
-            title={titles[doc.url] ?? null}
-            titleState={getState(doc.url)}
-            index={i}
-            onNavigate={(t) => navigate(`/stocks/${t}`, { ticker: t })}
-            onPreview={(url, source, rect) => setPreview({ url, source, rect })}
-          />
-        ))}
+        {docs?.map((doc, i) => {
+          if (isEmbedMode) {
+            const tickers = doc.sentiment
+              .filter(s => s.ticker)
+              .map(s => s.ticker!)
+              .filter((t, idx, arr) => arr.indexOf(t) === idx)
+              .slice(0, 5)
+            return (
+              <EmbedFeedItem
+                key={doc.id}
+                url={doc.url}
+                source={doc.source}
+                sentiment={doc.averageSentiment}
+                tickers={tickers}
+                publishedAt={doc.published}
+                onNavigate={(t) => navigate(`/stocks/${t}`, { ticker: t })}
+              />
+            )
+          }
+          return (
+            <FeedItem
+              key={doc.id}
+              doc={doc}
+              title={titles[doc.url] ?? null}
+              titleState={getState(doc.url)}
+              index={i}
+              onNavigate={(t) => navigate(`/stocks/${t}`, { ticker: t })}
+              onPreview={(url, source, rect) => setPreview({ url, source, rect })}
+            />
+          )
+        })}
       </div>
 
       {/* Pagination */}
