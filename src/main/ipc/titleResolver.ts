@@ -1,4 +1,7 @@
 import type { IpcMain } from 'electron'
+import { app } from 'electron'
+import { join } from 'path'
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync, unlinkSync } from 'fs'
 
 const USER_AGENT = 'SentiTerm/1.0 (+https://github.com/SentiSenseApp/sentiterm)'
 
@@ -253,14 +256,67 @@ async function fetchOEmbed(url: string): Promise<string | null> {
   }
 }
 
-// ── Image proxy (bypass CORS for stock logos) ──────────────────
+// ── Image proxy with persistent disk cache (30-day TTL) ────────
 
-const imageCache = new Map<string, { dataUrl: string; ts: number }>()
+const IMAGE_CACHE_TTL_MS = 30 * 24 * 60 * 60_000 // 30 days
+const IMAGE_CACHE_MAX = 500
+
+function getImageCacheDir(): string {
+  const dir = join(app.getPath('userData'), 'image-cache')
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+  return dir
+}
+
+function urlToFileName(url: string): string {
+  // Hash the URL to a safe filename
+  let hash = 0
+  for (let i = 0; i < url.length; i++) {
+    const chr = url.charCodeAt(i)
+    hash = ((hash << 5) - hash) + chr
+    hash |= 0
+  }
+  return `img_${Math.abs(hash).toString(36)}.json`
+}
+
+function diskCacheGet(url: string): string | null {
+  try {
+    const filePath = join(getImageCacheDir(), urlToFileName(url))
+    if (!existsSync(filePath)) return null
+    const entry = JSON.parse(readFileSync(filePath, 'utf-8'))
+    if (Date.now() - entry.ts > IMAGE_CACHE_TTL_MS) {
+      unlinkSync(filePath)
+      return null
+    }
+    return entry.dataUrl
+  } catch {
+    return null
+  }
+}
+
+function diskCacheSet(url: string, dataUrl: string): void {
+  try {
+    const dir = getImageCacheDir()
+    // Evict if over limit
+    const files = readdirSync(dir)
+    if (files.length >= IMAGE_CACHE_MAX) {
+      // Delete oldest files
+      const sorted = files
+        .map(f => ({ name: f, mtime: statSync(join(dir, f)).mtimeMs }))
+        .sort((a, b) => a.mtime - b.mtime)
+      for (let i = 0; i < 50 && i < sorted.length; i++) {
+        unlinkSync(join(dir, sorted[i].name))
+      }
+    }
+    writeFileSync(join(dir, urlToFileName(url)), JSON.stringify({ url, dataUrl, ts: Date.now() }))
+  } catch {
+    // Disk write failure — non-fatal
+  }
+}
 
 async function fetchImageAsDataUrl(url: string): Promise<string | null> {
-  // Check cache (1 hour TTL)
-  const cached = imageCache.get(url)
-  if (cached && Date.now() - cached.ts < 60 * 60_000) return cached.dataUrl
+  // Check disk cache first
+  const cached = diskCacheGet(url)
+  if (cached) return cached
 
   try {
     const controller = new AbortController()
@@ -278,12 +334,8 @@ async function fetchImageAsDataUrl(url: string): Promise<string | null> {
     const base64 = Buffer.from(buffer).toString('base64')
     const dataUrl = `data:${contentType};base64,${base64}`
 
-    // Cache it
-    if (imageCache.size >= MAX_CACHE) {
-      const oldest = imageCache.keys().next().value
-      if (oldest) imageCache.delete(oldest)
-    }
-    imageCache.set(url, { dataUrl, ts: Date.now() })
+    // Persist to disk
+    diskCacheSet(url, dataUrl)
 
     return dataUrl
   } catch {
