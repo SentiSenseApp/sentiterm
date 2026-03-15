@@ -24,6 +24,7 @@ const api = {
     resolve: (url: string) => ipcRenderer.invoke('titles:resolve', url) as Promise<string>,
     resolveBatch: (urls: string[]) => ipcRenderer.invoke('titles:resolveBatch', urls) as Promise<Record<string, string>>,
     oembed: (url: string) => ipcRenderer.invoke('titles:oembed', url) as Promise<string | null>,
+    proxyImage: (url: string) => ipcRenderer.invoke('titles:proxyImage', url) as Promise<string | null>,
   },
   platform: process.platform
 }

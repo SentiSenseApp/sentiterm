@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAppStore } from '../../store'
 import { useSentiSenseQuery } from '../../hooks/useSentiSense'
 import { SentimentView } from './SentimentView'
@@ -36,6 +36,14 @@ export function StockView() {
     async () => fetchStockImage(apiKey, ticker), [apiKey, ticker]
   )
 
+  // Proxy logo through main process to bypass CORS/auth on image CDN
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null)
+  useEffect(() => {
+    const src = image?.logoUrl || image?.iconUrl
+    if (!src) { setLogoDataUrl(null); return }
+    window.api?.titles.proxyImage(src).then(setLogoDataUrl)
+  }, [image])
+
   const isWatching = watchlist.includes(ticker)
   const isPositive = (stock?.changePercent ?? 0) >= 0
 
@@ -45,15 +53,13 @@ export function StockView() {
     else navigate(`/stocks/${ticker}/${newTab}`, { ticker })
   }
 
-  const logoSrc = image?.logoUrl || image?.iconUrl
-
   return (
     <div className="p-6">
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3">
-            {logoSrc && (
-              <img src={logoSrc} alt="" className="w-8 h-8 rounded-lg object-contain bg-terminal-surface" />
+            {logoDataUrl && (
+              <img src={logoDataUrl} alt="" className="w-8 h-8 rounded-lg object-contain bg-terminal-surface" />
             )}
             <h1 className="text-2xl font-mono font-bold text-terminal-accent">{ticker}</h1>
             {sentiment && (

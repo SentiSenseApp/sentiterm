@@ -253,6 +253,44 @@ async function fetchOEmbed(url: string): Promise<string | null> {
   }
 }
 
+// ── Image proxy (bypass CORS for stock logos) ──────────────────
+
+const imageCache = new Map<string, { dataUrl: string; ts: number }>()
+
+async function fetchImageAsDataUrl(url: string): Promise<string | null> {
+  // Check cache (1 hour TTL)
+  const cached = imageCache.get(url)
+  if (cached && Date.now() - cached.ts < 60 * 60_000) return cached.dataUrl
+
+  try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 5000)
+    const res = await fetch(url, {
+      headers: { 'User-Agent': USER_AGENT },
+      signal: controller.signal,
+    })
+    clearTimeout(timer)
+
+    if (!res.ok) return null
+
+    const contentType = res.headers.get('content-type') || 'image/png'
+    const buffer = await res.arrayBuffer()
+    const base64 = Buffer.from(buffer).toString('base64')
+    const dataUrl = `data:${contentType};base64,${base64}`
+
+    // Cache it
+    if (imageCache.size >= MAX_CACHE) {
+      const oldest = imageCache.keys().next().value
+      if (oldest) imageCache.delete(oldest)
+    }
+    imageCache.set(url, { dataUrl, ts: Date.now() })
+
+    return dataUrl
+  } catch {
+    return null
+  }
+}
+
 export function setupTitleResolverIPC(ipcMain: IpcMain): void {
   ipcMain.handle('titles:resolve', async (_event, url: string) => {
     return fetchTitle(url)
@@ -268,5 +306,9 @@ export function setupTitleResolverIPC(ipcMain: IpcMain): void {
 
   ipcMain.handle('titles:oembed', async (_event, url: string) => {
     return fetchOEmbed(url)
+  })
+
+  ipcMain.handle('titles:proxyImage', async (_event, url: string) => {
+    return fetchImageAsDataUrl(url)
   })
 }
