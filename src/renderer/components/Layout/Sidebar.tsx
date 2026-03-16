@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { icon: '\u25A4', label: 'Feeds', route: '/feeds' },
   { icon: '\u2191\u2193', label: 'Flows', route: '/flows/market' },
   { icon: '\u2609', label: 'Market', route: '/market' },
+  { icon: '\u2261', label: 'Indexes', route: '/indexes' },
 ]
 
 export function Sidebar() {

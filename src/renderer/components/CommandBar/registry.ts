@@ -147,6 +147,19 @@ export const FUNCTION_REGISTRY: FunctionDef[] = [
     category: 'navigation'
   },
   {
+    id: 'indexes',
+    name: 'Indexes',
+    description: 'SentiSense proprietary market indexes',
+    aliases: ['IDX', 'MOOD', 'INDEXES'],
+    patterns: [
+      /^(?:indexes|indices)$/i,
+      /^market\s+mood$/i,
+      /^(?:fear|greed)\s*(?:index)?$/i
+    ],
+    route: '/indexes',
+    category: 'navigation'
+  },
+  {
     id: 'market_overview',
     name: 'Market Overview',
     description: 'Market indexes and status',
