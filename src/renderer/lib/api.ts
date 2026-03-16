@@ -225,6 +225,12 @@ export async function fetchStoriesByTicker(apiKey: string, ticker: string): Prom
   })
 }
 
+export async function fetchStoryDetail(apiKey: string, clusterId: string): Promise<Record<string, unknown>> {
+  return cached(`storyDetail:${clusterId}`, TTL.stories, async () => {
+    return call<Record<string, unknown>>(apiKey, 'documents.getStoryDetail', clusterId)
+  })
+}
+
 // ── Market Overview ─────────────────────────────────────────
 
 export async function fetchMarketOverview(apiKey: string): Promise<TerminalMarketOverview> {

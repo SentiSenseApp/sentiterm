@@ -10,6 +10,7 @@ import { InstitutionalFlows, HedgeFundMovesView, ActivistWatchView, IndexFundAct
 import { MarketOverview } from './components/Terminal/MarketOverview'
 import { FeedView } from './components/Terminal/FeedView'
 import { IndexesView } from './components/Terminal/IndexesView'
+import { StoryDetail } from './components/Terminal/StoryDetail'
 import { useCommandBar } from './hooks/useCommandBar'
 import { useAppStore } from './store'
 
@@ -26,6 +27,7 @@ function Router() {
   if (currentRoute === '/flows/index-funds') return <IndexFundActivityView />
 
   // Other routes
+  if (currentRoute.startsWith('/stories/')) return <StoryDetail />
   if (currentRoute === '/stories') return <NewsStories />
   if (currentRoute === '/feeds') return <FeedView />
   if (currentRoute.startsWith('/indexes')) return <IndexesView />
