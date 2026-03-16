@@ -422,6 +422,23 @@ export async function fetchIndexFundActivity(apiKey: string, reportDate: string)
   })
 }
 
+// ── AI Market Summary ───────────────────────────────────
+
+export interface AIMarketSummaryData {
+  totalMentions: number
+  topActiveStocks: string[]
+  lastUpdated: number
+  headline: string | null
+  expandedContent: string | null
+  generatedAt: number | null
+}
+
+export async function fetchAIMarketSummary(apiKey: string): Promise<AIMarketSummaryData> {
+  return cached('aiMarketSummary', TTL.sentiment, async () => {
+    return call<AIMarketSummaryData>(apiKey, 'marketSummary.get')
+  })
+}
+
 // ── Chart ───────────────────────────────────────────────
 
 export async function fetchChart(apiKey: string, ticker: string, timeframe: '1M' | '3M' | '6M' | '1Y' = '3M'): Promise<TerminalChartData> {

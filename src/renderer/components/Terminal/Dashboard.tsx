@@ -2,8 +2,9 @@ import React from 'react'
 import { useAppStore } from '../../store'
 import { useSentiSenseQuery } from '../../hooks/useSentiSense'
 import { SparklineChart } from '../Common/Chart'
-import { fetchStockData, fetchSentiment, fetchMarketMood } from '../../lib/api'
+import { fetchStockData, fetchSentiment, fetchMarketMood, fetchAIMarketSummary } from '../../lib/api'
 import type { TerminalStockData, TerminalSentimentData, TerminalMarketSummary } from '../../lib/types'
+import type { AIMarketSummaryData } from '../../lib/api'
 
 function formatMarketCap(value: number): string {
   if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`
@@ -38,6 +39,9 @@ export function Dashboard() {
   const { data: mood, error: moodError, loading: moodLoading } = useSentiSenseQuery<TerminalMarketSummary>(
     async () => fetchMarketMood(apiKey), [apiKey]
   )
+  const { data: aiSummary } = useSentiSenseQuery<AIMarketSummaryData>(
+    async () => fetchAIMarketSummary(apiKey), [apiKey]
+  )
 
   return (
     <div className="p-6 space-y-6">
@@ -50,6 +54,38 @@ export function Dashboard() {
           {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
         </div>
       </div>
+
+      {/* AI Market Summary */}
+      {aiSummary && aiSummary.headline && (
+        <div className="terminal-card p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="data-label">AI Market Summary</span>
+            <span className="text-terminal-accent text-[10px] font-mono">SENTISENSE</span>
+            {aiSummary.topActiveStocks.length > 0 && (
+              <div className="ml-auto flex gap-1.5">
+                {aiSummary.topActiveStocks.slice(0, 5).map(t => (
+                  <button
+                    key={t}
+                    onClick={() => navigate(`/stocks/${t}`, { ticker: t })}
+                    className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-terminal-accent/10 text-terminal-accent hover:bg-terminal-accent/20 transition-colors"
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <p className="text-terminal-text text-sm font-medium leading-snug mb-2">{aiSummary.headline}</p>
+          {aiSummary.expandedContent && (
+            <p className="text-terminal-muted text-xs leading-relaxed line-clamp-4">{aiSummary.expandedContent}</p>
+          )}
+          {aiSummary.generatedAt && (
+            <p className="text-terminal-muted/40 text-[10px] font-mono mt-2">
+              Generated {new Date(aiSummary.generatedAt * 1000).toLocaleString()}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Market Mood */}
       <div className="terminal-card p-4">
