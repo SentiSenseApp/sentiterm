@@ -204,7 +204,7 @@ function transformStory(s: SDKStory): TerminalStory {
     summary: s.cluster.summarizedContent,
     sentiment: s.cluster.averageSentiment,
     sentimentLabel: sentimentLabel(s.cluster.averageSentiment),
-    tickers: s.displayTickers?.length ? s.displayTickers : (s.tickers ?? []),
+    tickers: s.tickers?.length ? s.tickers : (s.displayTickers ?? []).map(dt => { const m = dt.match(/\(([A-Z0-9.]+)\)$/); return m ? m[1] : dt }),
     sourceCount: s.cluster.clusterSize,
     publishedAt: new Date(s.brokeAt * 1000).toISOString(),
     category: 'News',
