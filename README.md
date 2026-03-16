@@ -51,7 +51,9 @@ Type these in the command bar (Cmd+K):
 
 ## Why Open Source?
 
-Because we think the best way to show what the SentiSense API can do is to let you see how it's built. Fork it, extend it, ship your own version. The API does the heavy lifting -- the terminal is just one way to use it.
+Because this is where software is going. You bring your own AI. You fork the terminal. You make it yours. The AI works for you, inside the app -- not the other way around.
+
+SentiSense does the data. Your AI does the thinking. The terminal is the canvas. Fork it, extend it, ship your own version.
 
 ## Tech Stack
 
