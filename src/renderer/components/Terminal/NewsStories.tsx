@@ -22,7 +22,8 @@ export function NewsStories({ ticker }: Props) {
         {stories?.map(story => (
           <div
             key={story.id}
-            className="terminal-card p-4 hover:border-terminal-accent/20 transition-colors"
+            className="terminal-card p-4 hover:border-terminal-accent/30 transition-colors cursor-pointer"
+            onClick={() => { if (story.tickers?.[0]) navigate(`/stocks/${story.tickers[0]}`, { ticker: story.tickers[0] }) }}
           >
             {/* Row 1: Sentiment + Category + Time */}
             <div className="flex items-center gap-2 mb-2">

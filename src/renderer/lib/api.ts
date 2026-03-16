@@ -254,27 +254,46 @@ export async function fetchMarketOverview(apiKey: string): Promise<TerminalMarke
 
 // ── Market Mood / Summary ───────────────────────────────────
 
+interface MarketMoodResponse {
+  market: {
+    currentScore: number
+    phase: string
+    weeklyChange: number
+    signals: Array<{ key: string; label: string; value: number; change: number }>
+  }
+  sectors: Record<string, { currentScore: number; phase: string; weeklyChange: number }>
+}
+
 export async function fetchMarketMood(apiKey: string): Promise<TerminalMarketSummary> {
   return cached('marketMood', TTL.sentiment, async () => {
-    const mood = await call<Record<string, unknown>>(apiKey, 'marketMood.get')
-    const summary = str(mood['summary'] ?? mood['narrative'],
-      'Market mood data is loading. Check back shortly for AI-generated market analysis.')
-    const keyThemes = Array.isArray(mood['keyThemes']) ? mood['keyThemes'] as string[]
-      : Array.isArray(mood['themes']) ? mood['themes'] as string[] : []
-    const sectorPerformance = Array.isArray(mood['sectorPerformance'])
-      ? (mood['sectorPerformance'] as Array<{ sector: string; change: number }>)
-      : Array.isArray(mood['sectors'])
-        ? (mood['sectors'] as Array<{ sector: string; change: number }>)
-        : []
-    const topMovers = Array.isArray(mood['topMovers'])
-      ? (mood['topMovers'] as Array<{ ticker: string; name: string; change: number }>)
-      : []
+    const mood = await call<MarketMoodResponse>(apiKey, 'marketMood.get')
+    const market = mood.market
+    const phase = market.phase ?? 'Unknown'
+    const score = Math.round(market.currentScore ?? 0)
+    const weeklyChange = market.weeklyChange ?? 0
+
+    // Build summary from market mood data
+    const direction = weeklyChange > 0 ? 'improving' : weeklyChange < 0 ? 'declining' : 'stable'
+    const summary = `Market sentiment is in a ${phase} phase (score: ${score}/100, ${direction} ${Math.abs(weeklyChange).toFixed(1)}% this week).`
+
+    // Build key themes from signals
+    const keyThemes = (market.signals ?? []).map(s => {
+      const dir = s.change > 0 ? '\u2191' : s.change < 0 ? '\u2193' : '\u2194'
+      return `${s.label}: ${s.value.toFixed(1)} (${dir}${Math.abs(s.change).toFixed(1)}%)`
+    })
+
+    // Build sector performance from sectors map
+    const sectorPerformance = Object.entries(mood.sectors ?? {}).map(([sector, data]) => ({
+      sector,
+      change: data.weeklyChange ?? 0,
+    }))
+
     return {
       summary,
       keyThemes,
       sectorPerformance,
-      topMovers,
-      generatedAt: str(mood['generatedAt'] ?? mood['timestamp'], new Date().toISOString()),
+      topMovers: [],
+      generatedAt: new Date().toISOString(),
     }
   })
 }
