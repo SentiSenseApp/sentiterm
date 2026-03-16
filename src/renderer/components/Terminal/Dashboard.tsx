@@ -22,7 +22,7 @@ export function Dashboard() {
   const { watchlist, navigate, settings } = useAppStore()
   const apiKey = settings.sentiSenseApiKey
 
-  const { data: summary } = useSentiSenseQuery<TerminalMarketSummary>(
+  const { data: summary, error: moodError, loading: moodLoading } = useSentiSenseQuery<TerminalMarketSummary>(
     async () => fetchMarketMood(apiKey), [apiKey]
   )
 
@@ -38,26 +38,44 @@ export function Dashboard() {
         </div>
       </div>
 
-      {summary && (
-        <div className="terminal-card p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="data-label">AI Market Summary</span>
-            <span className="text-terminal-accent text-[10px] font-mono">SENTISENSE</span>
-          </div>
-          <p className="text-terminal-text text-sm leading-relaxed mb-4">{summary.summary}</p>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-            {summary.sectorPerformance.map(s => (
-              <div key={s.sector} className="flex items-center justify-between text-xs font-mono">
-                <span className="text-terminal-muted">{s.sector}</span>
-                <span className={s.change >= 0 ? 'text-terminal-bull' : 'text-terminal-red'}>
-                  {s.change >= 0 ? '+' : ''}{s.change.toFixed(2)}%
-                </span>
-              </div>
-            ))}
-          </div>
+      {/* Market Summary */}
+      <div className="terminal-card p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="data-label">AI Market Summary</span>
+          <span className="text-terminal-accent text-[10px] font-mono">SENTISENSE</span>
         </div>
-      )}
+        {moodLoading && !summary && (
+          <div className="space-y-2">
+            <div className="h-3 rounded w-full bg-terminal-surface/50 animate-pulse" />
+            <div className="h-3 rounded w-4/5 bg-terminal-surface/30 animate-pulse" />
+            <div className="h-3 rounded w-3/5 bg-terminal-surface/20 animate-pulse" />
+          </div>
+        )}
+        {moodError && (
+          <p className="text-terminal-muted text-sm font-mono">
+            Market mood unavailable. {moodError}
+          </p>
+        )}
+        {summary && (
+          <>
+            <p className="text-terminal-text text-sm leading-relaxed mb-4">{summary.summary}</p>
+            {summary.sectorPerformance.length > 0 && (
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+                {summary.sectorPerformance.map(s => (
+                  <div key={s.sector} className="flex items-center justify-between text-xs font-mono">
+                    <span className="text-terminal-muted">{s.sector}</span>
+                    <span className={s.change >= 0 ? 'text-terminal-bull' : 'text-terminal-red'}>
+                      {s.change >= 0 ? '+' : ''}{s.change.toFixed(2)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
+      {/* Watchlist */}
       <div>
         <div className="flex items-center gap-3 mb-3">
           <span className="data-label">Watchlist</span>
@@ -70,7 +88,8 @@ export function Dashboard() {
         </div>
       </div>
 
-      {summary && (
+      {/* Key Themes */}
+      {summary && summary.keyThemes.length > 0 && (
         <div className="terminal-card p-4">
           <span className="data-label block mb-3">Key Themes</span>
           <div className="space-y-2">

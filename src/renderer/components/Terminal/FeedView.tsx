@@ -172,14 +172,14 @@ function FeedItem({ doc, title, titleState, index, onNavigate, onPreview }: {
 
           {/* Tickers */}
           {tickers.length > 0 && titleState === 'resolved' && (
-            <div className="flex gap-2 mt-1.5" style={{ animation: 'titleFadeIn 0.4s ease-out 0.15s both' }}>
+            <div className="flex gap-2 mt-2 flex-wrap" style={{ animation: 'titleFadeIn 0.4s ease-out 0.15s both' }}>
               {tickers.map(t => (
                 <button
                   key={t}
                   onClick={() => onNavigate(t)}
-                  className="text-terminal-accent/70 hover:text-terminal-accent transition-colors"
+                  className="text-xs font-mono px-2 py-1 rounded bg-terminal-accent/10 text-terminal-accent hover:bg-terminal-accent/20 transition-colors"
                 >
-                  ${t}
+                  {t}
                 </button>
               ))}
             </div>
@@ -353,15 +353,15 @@ export function FeedView() {
         </div>
 
         {/* Source filter tabs */}
-        <div className="flex gap-1">
+        <div className="flex gap-1.5">
           {filters.map(f => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`px-3 py-1.5 text-xs font-mono rounded transition-colors ${
+              className={`px-4 py-2 text-sm font-mono rounded-lg transition-colors ${
                 filter === f.key
                   ? 'bg-terminal-accent/15 text-terminal-accent'
-                  : 'text-terminal-muted hover:text-terminal-text'
+                  : 'text-terminal-muted hover:text-terminal-text hover:bg-terminal-surface'
               }`}
             >
               {f.label}

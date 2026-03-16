@@ -142,7 +142,7 @@ export function EmbedFeedItem({ url, source, sentiment, tickers, publishedAt, on
         }}
       >
         {/* Header */}
-        <div className="flex items-center gap-2 px-3 py-1.5 border-b border-terminal-border/10 font-mono text-[10px] h-8">
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-terminal-border/10 font-mono text-xs h-9">
           <span className={`${isX ? 'text-terminal-muted/50' : 'text-orange-400/50'}`}>
             {isX ? '\u2731' : '\u25B2'}
           </span>
@@ -158,9 +158,9 @@ export function EmbedFeedItem({ url, source, sentiment, tickers, publishedAt, on
                 <button
                   key={t}
                   onClick={() => onNavigate(t)}
-                  className="text-terminal-accent/60 hover:text-terminal-accent transition-colors"
+                  className="px-1.5 py-0.5 rounded bg-terminal-accent/10 text-terminal-accent/70 hover:text-terminal-accent hover:bg-terminal-accent/20 transition-colors"
                 >
-                  ${t}
+                  {t}
                 </button>
               ))}
             </>
