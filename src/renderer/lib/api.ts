@@ -146,19 +146,50 @@ export async function fetchStockList(apiKey: string): Promise<StockSearchResult[
 
 export async function fetchSentiment(apiKey: string, ticker: string): Promise<TerminalSentimentData> {
   return cached(`sentiment:${ticker}`, TTL.sentiment, async () => {
-    const s = await call<Record<string, unknown>>(apiKey, 'entityMetrics.getSentiment', ticker)
-    const overall = num(s['overall'] ?? s['averageSentiment'] ?? s['score'], 0)
-    const bull = num(s['bullScore'] ?? s['positive'], overall > 0 ? 50 + overall * 50 : 50 + overall * 50)
+    // Use v2 metrics API (v1 getSentiment is retired)
+    const metrics = await call<Array<{ timestamp: number; value: number; [k: string]: unknown }>>(
+      apiKey, 'entityMetrics.getMetrics', ticker, { metricType: 'sentiment', maxDataPoints: 10 }
+    )
+
+    // v2 returns time-series — take the latest data point
+    const latest = Array.isArray(metrics) && metrics.length > 0 ? metrics[metrics.length - 1] : null
+    const overall = latest ? num(latest.value, 0) : 0
+
+    // Derive bull/bear from sentiment score (-1 to 1 range → 0-100)
+    const bull = Math.round(50 + overall * 50)
     const bear = 100 - bull
+
+    // Calculate trend from last few points
+    let trend: 'rising' | 'falling' | 'stable' = 'stable'
+    if (Array.isArray(metrics) && metrics.length >= 3) {
+      const recent = metrics.slice(-3).map(m => num(m.value))
+      const avg = recent.reduce((a, b) => a + b, 0) / recent.length
+      if (avg > overall + 0.05) trend = 'falling'
+      else if (avg < overall - 0.05) trend = 'rising'
+    }
+
+    // Get mention count from mentions metric
+    let volume = 0
+    try {
+      const mentions = await call<Array<{ timestamp: number; value: number }>>(
+        apiKey, 'entityMetrics.getMetrics', ticker, { metricType: 'mentions', maxDataPoints: 1 }
+      )
+      if (Array.isArray(mentions) && mentions.length > 0) {
+        volume = num(mentions[mentions.length - 1].value)
+      }
+    } catch {
+      // Mentions might not be available
+    }
+
     return {
       ticker,
       overall,
-      bullScore: Math.round(bull),
-      bearScore: Math.round(bear),
-      confidence: num(s['confidence'], 0.5),
-      volume: num(s['volume'] ?? s['mentionCount'] ?? s['totalMentions']),
-      trend: (str(s['trend'], 'stable') as 'rising' | 'falling' | 'stable'),
-      updatedAt: str(s['updatedAt'] ?? s['timestamp'], new Date().toISOString()),
+      bullScore: bull,
+      bearScore: bear,
+      confidence: 0.5, // v2 doesn't expose confidence
+      volume,
+      trend,
+      updatedAt: latest ? new Date(latest.timestamp).toISOString() : new Date().toISOString(),
     }
   })
 }
