@@ -18,11 +18,24 @@ function formatVolume(value: number): string {
   return `${value}`
 }
 
+function phaseColor(phase: string): string {
+  const p = phase.toLowerCase()
+  if (p.includes('greed') || p.includes('euphoria')) return 'text-terminal-bull'
+  if (p.includes('fear') || p.includes('panic')) return 'text-terminal-red'
+  return 'text-terminal-amber'
+}
+
+function moodGaugeColor(score: number): string {
+  if (score >= 70) return 'bg-terminal-bull'
+  if (score >= 40) return 'bg-terminal-amber'
+  return 'bg-terminal-red'
+}
+
 export function Dashboard() {
   const { watchlist, navigate, settings } = useAppStore()
   const apiKey = settings.sentiSenseApiKey
 
-  const { data: summary, error: moodError, loading: moodLoading } = useSentiSenseQuery<TerminalMarketSummary>(
+  const { data: mood, error: moodError, loading: moodLoading } = useSentiSenseQuery<TerminalMarketSummary>(
     async () => fetchMarketMood(apiKey), [apiKey]
   )
 
@@ -38,38 +51,70 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Market Summary */}
+      {/* Market Mood */}
       <div className="terminal-card p-4">
         <div className="flex items-center gap-2 mb-3">
-          <span className="data-label">AI Market Summary</span>
+          <span className="data-label">Market Mood</span>
           <span className="text-terminal-accent text-[10px] font-mono">SENTISENSE</span>
         </div>
-        {moodLoading && !summary && (
+
+        {moodLoading && !mood && (
           <div className="space-y-2">
             <div className="h-3 rounded w-full bg-terminal-surface/50 animate-pulse" />
             <div className="h-3 rounded w-4/5 bg-terminal-surface/30 animate-pulse" />
-            <div className="h-3 rounded w-3/5 bg-terminal-surface/20 animate-pulse" />
           </div>
         )}
+
         {moodError && (
-          <p className="text-terminal-muted text-sm font-mono">
-            Market mood unavailable. {moodError}
-          </p>
+          <p className="text-terminal-muted text-sm font-mono">{moodError}</p>
         )}
-        {summary && (
+
+        {mood && (
           <>
-            <p className="text-terminal-text text-sm leading-relaxed mb-4">{summary.summary}</p>
-            {summary.sectorPerformance.length > 0 && (
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-                {summary.sectorPerformance.map(s => (
-                  <div key={s.sector} className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-terminal-muted">{s.sector}</span>
-                    <span className={s.change >= 0 ? 'text-terminal-bull' : 'text-terminal-red'}>
-                      {s.change >= 0 ? '+' : ''}{s.change.toFixed(2)}%
-                    </span>
+            {/* Score + Phase */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="text-3xl font-mono font-bold text-terminal-text">{mood.score}</div>
+                <div>
+                  <div className={`text-sm font-mono font-semibold ${phaseColor(mood.phase)}`}>{mood.phase}</div>
+                  <div className={`text-xs font-mono ${mood.weeklyChange >= 0 ? 'text-terminal-bull' : 'text-terminal-red'}`}>
+                    {mood.weeklyChange >= 0 ? '\u2191' : '\u2193'} {Math.abs(mood.weeklyChange).toFixed(1)}% this week
                   </div>
+                </div>
+              </div>
+              {/* Gauge bar */}
+              <div className="flex-1 h-3 bg-terminal-bg rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${moodGaugeColor(mood.score)}`}
+                  style={{ width: `${mood.score}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Signals */}
+            {mood.keyThemes.length > 0 && (
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2 mb-4">
+                {mood.keyThemes.map((theme, i) => (
+                  <div key={i} className="text-xs font-mono text-terminal-muted">{theme}</div>
                 ))}
               </div>
+            )}
+
+            {/* Sector Performance */}
+            {mood.sectorPerformance.length > 0 && (
+              <>
+                <div className="data-label mb-2">Sector Sentiment</div>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+                  {mood.sectorPerformance.map(s => (
+                    <div key={s.sector} className="flex items-center justify-between text-xs font-mono">
+                      <span className="text-terminal-muted">{s.sector}</span>
+                      <span className={s.change >= 0 ? 'text-terminal-bull' : 'text-terminal-red'}>
+                        {s.change >= 0 ? '+' : ''}{s.change.toFixed(1)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </>
         )}
@@ -87,21 +132,6 @@ export function Dashboard() {
           ))}
         </div>
       </div>
-
-      {/* Key Themes */}
-      {summary && summary.keyThemes.length > 0 && (
-        <div className="terminal-card p-4">
-          <span className="data-label block mb-3">Key Themes</span>
-          <div className="space-y-2">
-            {summary.keyThemes.map((theme, i) => (
-              <div key={i} className="flex items-start gap-2 text-sm">
-                <span className="text-terminal-accent font-mono shrink-0">{'\u2022'}</span>
-                <span className="text-terminal-text/80">{theme}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -55,6 +55,9 @@ export interface TerminalMarketOverview {
 }
 
 export interface TerminalMarketSummary {
+  score: number
+  phase: string
+  weeklyChange: number
   summary: string
   keyThemes: string[]
   sectorPerformance: Array<{ sector: string; change: number }>

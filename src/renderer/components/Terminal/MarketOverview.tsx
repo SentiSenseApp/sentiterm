@@ -42,17 +42,15 @@ export function MarketOverview() {
 
       {summary && (
         <div className="terminal-card p-4">
-          <div className="flex items-center gap-2 mb-3"><span className="data-label">AI Market Summary</span><span className="text-terminal-accent text-[10px] font-mono">SENTISENSE</span></div>
-          <p className="text-terminal-text text-sm leading-relaxed mb-4">{summary.summary}</p>
-          <div className="data-label mb-2">Top Movers</div>
-          <div className="flex gap-3">
-            {summary.topMovers.map(m => (
-              <div key={m.ticker} className="terminal-card px-3 py-2 bg-terminal-bg">
-                <span className="text-terminal-accent font-mono text-sm font-semibold mr-2">{m.ticker}</span>
-                <span className={`text-sm font-mono ${m.change >= 0 ? 'positive' : 'negative'}`}>{m.change >= 0 ? '+' : ''}{m.change.toFixed(2)}%</span>
-              </div>
-            ))}
+          <div className="flex items-center gap-2 mb-3"><span className="data-label">Market Mood</span><span className="text-terminal-accent text-[10px] font-mono">SENTISENSE</span></div>
+          <div className="flex items-center gap-4 mb-3">
+            <div className="text-2xl font-mono font-bold text-terminal-text">{summary.score}</div>
+            <div className="text-sm font-mono font-semibold text-terminal-amber">{summary.phase}</div>
+            <div className="flex-1 h-2 bg-terminal-bg rounded-full overflow-hidden">
+              <div className={`h-full rounded-full ${summary.score >= 70 ? 'bg-terminal-bull' : summary.score >= 40 ? 'bg-terminal-amber' : 'bg-terminal-red'}`} style={{ width: `${summary.score}%` }} />
+            </div>
           </div>
+          <p className="text-terminal-text text-sm leading-relaxed">{summary.summary}</p>
         </div>
       )}
 

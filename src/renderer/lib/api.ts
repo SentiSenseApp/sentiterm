@@ -289,6 +289,9 @@ export async function fetchMarketMood(apiKey: string): Promise<TerminalMarketSum
     }))
 
     return {
+      score,
+      phase,
+      weeklyChange,
       summary,
       keyThemes,
       sectorPerformance,
