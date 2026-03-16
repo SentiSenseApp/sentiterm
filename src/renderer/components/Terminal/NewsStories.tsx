@@ -21,7 +21,7 @@ function StoryCard({ story }: { story: TerminalStory }) {
   return (
     <div
       className={`terminal-card p-4 transition-colors cursor-pointer ${expanded ? 'border-terminal-accent/20' : 'hover:border-terminal-accent/20'}`}
-      onClick={() => setExpanded(!expanded)}
+      onClick={() => navigate(`/stories/${story.id}`, { clusterId: story.id })}
     >
       {/* Row 1: Metadata */}
       <div className="flex items-center gap-2 mb-1.5">

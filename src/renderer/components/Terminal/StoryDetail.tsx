@@ -44,6 +44,15 @@ function timeAgo(ts: number): string {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
+/** Resolve [doc1] citation references in narrative to clickable markdown links */
+function resolveCitations(text: string, citationLinks: Record<string, string>): string {
+  if (!citationLinks || Object.keys(citationLinks).length === 0) return text
+  return text.replace(/\[doc(\d+)\]/g, (match, num) => {
+    const url = citationLinks[`doc${num}`]
+    return url ? `[source](${url})` : match
+  })
+}
+
 export function StoryDetail() {
   const { routeParams, navigate, settings } = useAppStore()
   const apiKey = settings.sentiSenseApiKey
@@ -65,34 +74,27 @@ export function StoryDetail() {
     </div>
   )
 
-  // Extract fields from the response
-  const cluster = (story?.cluster ?? story) as Record<string, unknown> | null
-  const title = String(cluster?.title ?? '')
-  const summarizedContent = String(cluster?.summarizedContent ?? cluster?.narrativeBody ?? '')
-  const narrativeBody = String(story?.narrativeBody ?? cluster?.narrativeBody ?? '')
-  const sentiment = Number(cluster?.averageSentiment ?? 0)
-  const sourceCount = Number(cluster?.clusterSize ?? 0)
-  const createdAt = Number(cluster?.createdAt ?? 0)
+  // Extract fields — matches PublicStoryDetailDto shape
+  const title = String(story?.title ?? '')
+  const summarizedContent = String(story?.summarizedContent ?? '')
+  const narrativeBody = String(story?.narrativeBody ?? '')
+  const bullishView = String(story?.bullishView ?? '')
+  const bearishView = String(story?.bearishView ?? '')
+  const sentiment = Number(story?.averageSentiment ?? 0)
+  const sourceCount = Number(story?.clusterSize ?? 0)
+  const createdAt = Number(story?.createdAt ?? 0)
   const badge = sentimentBadge(sentiment)
+  const citationLinks = (story?.citationLinks ?? {}) as Record<string, string>
+  const tickers = (story?.tickers ?? []) as string[]
+  const sourcesList = (story?.sourcesList ?? []) as string[]
 
-  // Tickers
-  const rawTickers = (story?.tickers ?? []) as string[]
-  const displayTickers = (story?.displayTickers ?? []) as string[]
-  const tickers = rawTickers.length > 0 ? rawTickers : displayTickers.map(dt => {
-    const m = dt.match(/\(([A-Z0-9.]+)\)$/)
-    return m ? m[1] : dt
-  })
-
-  // Content to render (prefer narrativeBody if available, else summarizedContent)
-  const content = narrativeBody || summarizedContent
+  // Content to render — resolve [doc1] citations to clickable links
+  const rawContent = narrativeBody || summarizedContent
+  const content = rawContent ? resolveCitations(rawContent.replace(/\\n/g, '\n'), citationLinks) : ''
 
   return (
     <div className="p-6 max-w-3xl">
-      {/* Back button */}
-      <button
-        onClick={() => navigate('/stories')}
-        className="text-terminal-accent text-xs font-mono mb-4 hover:underline"
-      >
+      <button onClick={() => navigate('/stories')} className="text-terminal-accent text-xs font-mono mb-4 hover:underline">
         {'\u2190'} Back to Stories
       </button>
 
@@ -111,49 +113,74 @@ export function StoryDetail() {
       )}
 
       {story && (
-        <div className="terminal-card p-6">
-          {/* Metadata */}
-          <div className="flex items-center gap-2 mb-3">
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${badge.className}`}>
-              {badge.label}
-            </span>
-            <span className="text-terminal-muted/50 text-xs font-mono">
-              {sourceCount} sources {'\u00B7'} {timeAgo(createdAt)}
-            </span>
+        <div className="space-y-4">
+          {/* Main story card */}
+          <div className="terminal-card p-6">
+            {/* Metadata */}
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${badge.className}`}>
+                {badge.label}
+              </span>
+              <span className="text-terminal-muted/50 text-xs font-mono">
+                {sourceCount} sources {'\u00B7'} {timeAgo(createdAt)}
+              </span>
+              {sourcesList.length > 0 && (
+                <span className="text-terminal-muted/30 text-[10px] font-mono">
+                  {sourcesList.join(', ')}
+                </span>
+              )}
+            </div>
+
+            {/* Title */}
+            <h1 className="text-lg font-semibold text-terminal-text leading-snug mb-4">{title}</h1>
+
+            {/* Tickers */}
+            {tickers.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap mb-4">
+                {tickers.map(t => (
+                  <button key={t} onClick={() => navigate(`/stocks/${t}`, { ticker: t })}
+                    className="text-xs font-mono px-2 py-1 rounded bg-terminal-accent/10 text-terminal-accent hover:bg-terminal-accent/20 transition-colors">
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Story content — markdown with resolved citations */}
+            {content && (
+              <div className="border-t border-terminal-border/20 pt-4">
+                <ReactMarkdown components={markdownComponents}>{content}</ReactMarkdown>
+              </div>
+            )}
           </div>
 
-          {/* Title */}
-          <h1 className="text-lg font-semibold text-terminal-text leading-snug mb-4">
-            {title}
-          </h1>
-
-          {/* Tickers */}
-          {tickers.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap mb-4">
-              {tickers.map(t => (
-                <button
-                  key={t}
-                  onClick={() => navigate(`/stocks/${t}`, { ticker: t })}
-                  className="text-xs font-mono px-2 py-1 rounded bg-terminal-accent/10 text-terminal-accent hover:bg-terminal-accent/20 transition-colors"
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Story content — rendered as markdown */}
-          {content && (
-            <div className="border-t border-terminal-border/20 pt-4">
-              <ReactMarkdown components={markdownComponents}>
-                {content.replace(/\\n/g, '\n')}
-              </ReactMarkdown>
+          {/* Bull/Bear perspectives */}
+          {(bullishView || bearishView) && (
+            <div className="grid grid-cols-2 gap-4">
+              {bullishView && (
+                <div className="terminal-card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-terminal-bull text-lg">{'\u2191'}</span>
+                    <span className="data-label text-terminal-bull">Bull Case</span>
+                  </div>
+                  <p className="text-xs text-terminal-text/80 leading-relaxed">{bullishView}</p>
+                </div>
+              )}
+              {bearishView && (
+                <div className="terminal-card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-terminal-red text-lg">{'\u2193'}</span>
+                    <span className="data-label text-terminal-red">Bear Case</span>
+                  </div>
+                  <p className="text-xs text-terminal-text/80 leading-relaxed">{bearishView}</p>
+                </div>
+              )}
             </div>
           )}
 
           {/* Disclaimer */}
-          <p className="text-terminal-muted/30 text-[10px] font-mono mt-6">
-            AI-generated content. Not financial advice.
+          <p className="text-terminal-muted/30 text-[10px] font-mono text-center">
+            AI-generated content by SentiSense. Not financial advice.
           </p>
         </div>
       )}
